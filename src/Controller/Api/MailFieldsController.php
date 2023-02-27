@@ -17,6 +17,8 @@ use BaserCore\Annotation\UnitTest;
 use BaserCore\Controller\Api\BcApiController;
 use BcMail\Service\MailFieldsService;
 use BcMail\Service\MailFieldsServiceInterface;
+use Cake\Datasource\Exception\RecordNotFoundException;
+use Cake\ORM\Exception\PersistenceFailedException;
 
 /**
  * メールフィールドコントローラー
@@ -98,4 +100,206 @@ class MailFieldsController extends BcApiController
         $this->viewBuilder()->setOption('serialize', ['plugin', 'message']);
     }
 
+    /**
+     * [API] メールフィールド API 一覧取得
+     *
+     * @param MailFieldsServiceInterface $service
+     * @param int $mailContentId
+     *
+     * @checked
+     * @noTodo
+     * @unitTest
+     */
+    public function index(MailFieldsServiceInterface $service, int $mailContentId)
+    {
+        $this->set([
+            'mailFields' => $service->getIndex($mailContentId, $this->request->getQueryParams())
+        ]);
+        $this->viewBuilder()->setOption('serialize', ['mailFields']);
+    }
+
+    /**
+     * [API] メールフィールド API 単一データ取得
+     *
+     * @param MailFieldsServiceInterface $service
+     * @param int $id
+     * @return void
+     *
+     * @checked
+     * @noTodo
+     * @unitTest
+     */
+    public function view(MailFieldsServiceInterface $service, int $id)
+    {
+        $this->set([
+            'mailField' => $service->get($id)
+        ]);
+        $this->viewBuilder()->setOption('serialize', ['mailField']);
+    }
+
+    /**
+     * [API] メールフィールド API リスト取得
+     *
+     * @param MailFieldsServiceInterface $service
+     * @param int $mailContentId
+     * @return void
+     *
+     * @checked
+     * @noTodo
+     * @unitTest
+     */
+    public function list(MailFieldsServiceInterface $service, int $mailContentId)
+    {
+        $this->set([
+            'mailFields' => $service->getList($mailContentId)
+        ]);
+        $this->viewBuilder()->setOption('serialize', ['mailFields']);
+    }
+
+    /**
+     * [API] メールフィールド API 新規追加
+     *
+     * @param MailFieldsServiceInterface $service
+     * @return void
+     *
+     * @checked
+     * @noTodo
+     * @unitTest
+     */
+    public function add(MailFieldsServiceInterface $service)
+    {
+        $this->request->allowMethod(['post', 'put']);
+        try {
+            $mailField = $service->create($this->request->getData());
+            $message = __d('baser', '新規メールフィールド「{0}」を追加しました。', $mailField->name);
+        } catch (PersistenceFailedException $e) {
+            $errors = $e->getEntity()->getErrors();
+            $message = __d('baser', "入力エラーです。内容を修正してください。");
+            $this->setResponse($this->response->withStatus(400));
+        } catch (\Throwable $e) {
+            $this->setResponse($this->response->withStatus(400));
+            $message = __d('baser', '処理中にエラーが発生しました。');
+        }
+
+        $this->set([
+            'mailField' => $mailField ?? null,
+            'message' => $message,
+            'errors' => $errors ?? null,
+        ]);
+        $this->viewBuilder()->setOption('serialize', [
+            'mailField',
+            'message',
+            'errors'
+        ]);
+    }
+
+
+    /**
+     * [API] メールフィールド API 編集
+     *
+     * @param MailFieldsServiceInterface $service
+     * @return void
+     *
+     * @checked
+     * @noTodo
+     * @unitTest
+     */
+    public function edit(MailFieldsServiceInterface $service, int $id)
+    {
+        $this->request->allowMethod(['post', 'put', 'patch']);
+        try {
+            $mailField = $service->update($service->get($id), $this->request->getData());
+            $message = __d('baser', 'メールフィールド「{0}」を更新しました。', $mailField->name);
+        } catch (PersistenceFailedException $e) {
+            $mailField = $e->getEntity();
+            $this->setResponse($this->response->withStatus(400));
+            $message = __d('baser', '入力エラーです。内容を修正してください。');
+        } catch (\Throwable $e) {
+            $this->setResponse($this->response->withStatus(400));
+            $message = __d('baser', '処理中にエラーが発生しました。' . $e->getMessage());
+        }
+
+        $this->set([
+            'message' => $message,
+            'mailField' => $mailField,
+            'errors' => $mailField->getErrors(),
+        ]);
+        $this->viewBuilder()->setOption('serialize', ['mailField', 'message', 'errors']);
+    }
+
+    /**
+     * [API] メールフィールド API 削除
+     *
+     * @param MailFieldsServiceInterface $service
+     * @param int $id
+     * @return void
+     *
+     * @checked
+     * @noTodo
+     * @unitTest
+     */
+    public function delete(MailFieldsServiceInterface $service, int $id)
+    {
+        $this->request->allowMethod(['post', 'put', 'patch']);
+        $mailField = null;
+        try {
+            $mailField = $service->get($id);
+            if ($service->delete($id)) {
+                $message = __d('baser', 'メールフィールド「{0}」を削除しました。', $mailField->name);
+            } else {
+                $message = __d('baser', 'データベース処理中にエラーが発生しました。');
+            }
+        } catch (RecordNotFoundException $e) {
+            $this->setResponse($this->response->withStatus(404));
+            $message = __d('baser', 'データが見つかりません');
+        } catch (\Throwable $e) {
+            $this->setResponse($this->response->withStatus(400));
+            $message = __d('baser', '処理中にエラーが発生しました。' . $e->getMessage());
+        }
+
+        $this->set([
+            'message' => $message,
+            'mailField' => $mailField
+        ]);
+        $this->viewBuilder()->setOption('serialize', ['mailField', 'message']);
+    }
+
+    /**
+     * [API] メールフィールド API コピー
+     *
+     * @param MailFieldsServiceInterface $service
+     * @param int $mailContentId
+     * @param int $id
+     * @return void
+     *
+     * @checked
+     * @noTodo
+     * @unitTest
+     */
+    public function copy(MailFieldsServiceInterface $service, int $mailContentId, int $id)
+    {
+        $this->request->allowMethod(['post', 'put', 'patch']);
+        try {
+            if ($service->copy($mailContentId, $id)) {
+                $mailField = $service->get($id);
+                $message = __d('baser', 'メールフィールド「{0}」をコピーしました。', $mailField->name);
+            } else {
+                $message = __d('baser', 'データベース処理中にエラーが発生しました。');
+            }
+        } catch (PersistenceFailedException $e) {
+            $mailField = $e->getEntity();
+            $this->setResponse($this->response->withStatus(400));
+            $message = __d('baser', '入力エラーです。内容を修正してください。');
+        } catch (\Throwable $e) {
+            $this->setResponse($this->response->withStatus(400));
+            $message = __d('baser', '処理中にエラーが発生しました。' . $e->getMessage());
+        }
+
+        $this->set([
+            'message' => $message,
+            'mailField' => $mailField,
+            'errors' => $mailField->getErrors(),
+        ]);
+        $this->viewBuilder()->setOption('serialize', ['mailField', 'message', 'errors']);
+    }
 }
