@@ -11,9 +11,11 @@
 
 namespace BcMail\Test\TestCase\Controller\Api;
 
+use BaserCore\Controller\Api\PagesController;
 use BaserCore\Test\Factory\ContentFactory;
 use BaserCore\Test\Scenario\InitAppScenario;
 use BaserCore\TestSuite\BcTestCase;
+use BcMail\Test\Scenario\MailContentsScenario;
 use BcMail\Service\MailContentsServiceInterface;
 use BcMail\Test\Factory\MailContentFactory;
 use Cake\TestSuite\IntegrationTestTrait;
@@ -69,11 +71,38 @@ class MailContentsControllerTest extends BcTestCase
     }
 
     /**
+     * test initialize
+     */
+    public function test_initialize()
+    {
+        $controller = new PagesController($this->getRequest());
+        $this->assertEquals($controller->Authentication->unauthenticatedActions, ['index']);
+    }
+
+    /**
      * [API] メールコンテンツ API 一覧取得
      */
     public function testIndex()
     {
-        $this->markTestIncomplete('このテストは、まだ実装されていません。');
+        //データを生成
+        $this->loadFixtureScenario(MailContentsScenario::class);
+        //APIを呼ぶ
+        $this->get("/baser/api/bc-mail/mail_contents/index.json");
+        // レスポンスコードを確認する
+        $this->assertResponseOk();
+        // 戻る値を確認
+        $result = json_decode((string)$this->_response->getBody());
+        $this->assertCount(2, $result->mailContents);
+
+        //ログインしていない状態では status パラメーターへへのアクセスを禁止するか確認
+        $this->get('/baser/api/bc-mail/mail_contents/index.json?status=unpublish');
+        // レスポンスを確認
+        $this->assertResponseCode(403);
+
+        //ログインしている状態では status パラメーターへへのアクセできるか確認
+        $this->get('/baser/api/bc-mail/mail_contents/index.json?status=unpublish&token=' . $this->accessToken);
+        // レスポンスを確認
+        $this->assertResponseOk();
     }
 
     /**
@@ -109,7 +138,15 @@ class MailContentsControllerTest extends BcTestCase
      */
     public function testList()
     {
-        $this->markTestIncomplete('このテストは、まだ実装されていません。');
+        //データを生成
+        $this->loadFixtureScenario(MailContentsScenario::class);
+        //APIを呼ぶ
+        $this->get("/baser/api/bc-mail/mail_contents/list/1.json?token=" . $this->accessToken);
+        // レスポンスコードを確認する
+        $this->assertResponseOk();
+        // 戻る値を確認
+        $result = json_decode((string)$this->_response->getBody());
+        $this->assertNotNull($result->mailContents);
     }
 
     /**

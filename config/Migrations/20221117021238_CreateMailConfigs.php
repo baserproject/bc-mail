@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-use Migrations\AbstractMigration;
+use BaserCore\Database\Migration\BcMigration;
 
-class CreateMailConfigs extends AbstractMigration
+class CreateMailConfigs extends BcMigration
 {
     /**
      * Up Method.
@@ -15,29 +15,14 @@ class CreateMailConfigs extends AbstractMigration
     public function up()
     {
         $this->table('mail_configs')
-            ->addColumn('site_name', 'string', [
-                'default' => null,
-                'limit' => 50,
-                'null' => true,
-            ])
-            ->addColumn('site_url', 'string', [
+            ->addColumn('name', 'string', [
                 'default' => null,
                 'limit' => 255,
                 'null' => true,
             ])
-            ->addColumn('site_email', 'string', [
+            ->addColumn('value', 'text', [
                 'default' => null,
-                'limit' => 50,
-                'null' => true,
-            ])
-            ->addColumn('site_tel', 'string', [
-                'default' => null,
-                'limit' => 20,
-                'null' => true,
-            ])
-            ->addColumn('site_fax', 'string', [
-                'default' => null,
-                'limit' => 20,
+                'limit' => 255,
                 'null' => true,
             ])
             ->addColumn('created', 'datetime', [

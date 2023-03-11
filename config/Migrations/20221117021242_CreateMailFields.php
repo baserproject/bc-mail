@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-use Migrations\AbstractMigration;
+use BaserCore\Database\Migration\BcMigration;
 
-class CreateMailFields extends AbstractMigration
+class CreateMailFields extends BcMigration
 {
     /**
      * Up Method.
@@ -110,7 +110,7 @@ class CreateMailFields extends AbstractMigration
                 'limit' => 255,
                 'null' => true,
             ])
-            ->addColumn('valid', 'boolean', [
+            ->addColumn('valid', 'string', [
                 'default' => null,
                 'limit' => 255,
                 'null' => true,

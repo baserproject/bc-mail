@@ -14,6 +14,7 @@ namespace BcMail\Model\Table;
 use Authentication\PasswordHasher\DefaultPasswordHasher;
 use BaserCore\Error\BcException;
 use BaserCore\Utility\BcUtil;
+use BcMail\View\Helper\MaildataHelper;
 use Cake\Datasource\ConnectionManager;
 use Cake\Datasource\EntityInterface;
 use Cake\Datasource\ResultSetInterface;
@@ -25,6 +26,7 @@ use BaserCore\Annotation\UnitTest;
 use BaserCore\Annotation\NoTodo;
 use BaserCore\Annotation\Checked;
 use Cake\Validation\Validator;
+use Cake\View\View;
 
 /**
  * メッセージモデル
@@ -146,7 +148,7 @@ class MailMessagesTable extends MailAppTable
     {
         $mailContentId = (int)$mailContentId;
         if (!is_int($mailContentId)) {
-            throw new BcException(__d('baser', 'MailMessageService::createTableName() の引数 $mailContentId は int 型しか受けつけていません。'));
+            throw new BcException(__d('baser_core', 'MailMessageService::createTableName() の引数 $mailContentId は int 型しか受けつけていません。'));
         }
         return 'mail_message_' . $mailContentId;
     }
@@ -219,13 +221,13 @@ class MailMessagesTable extends MailAppTable
                             ->add($mailField->field_name, [
                                 'notFileEmpty' => [
                                     'rule' => 'notFileEmpty',
-                                    'message' => __('必須項目です。')
+                                    'message' => __d('baser_core', '必須項目です。')
                                 ]
                             ]);
                     }
                 } else {
                     $validator->requirePresence($mailField->field_name)
-                        ->notEmpty($mailField->field_name, __('必須項目です。'));
+                        ->notEmpty($mailField->field_name, __d('baser_core', '必須項目です。'));
                 }
             } else {
                 $validator->allowEmpty($mailField->field_name);
@@ -272,7 +274,7 @@ class MailMessagesTable extends MailAppTable
                                     'fileCheck' => [
                                         'provider' => 'bc',
                                         'rule' => ['fileCheck', BcUtil::convertSize($options['maxFileSize'], 'B', 'M')],
-                                        'message' => __('ファイルのアップロードに失敗しました。')
+                                        'message' => __d('baser_core', 'ファイルのアップロードに失敗しました。')
                                     ]
                                 ]);
                                 // TODO ucmitz 未検証
@@ -287,7 +289,7 @@ class MailMessagesTable extends MailAppTable
                                     'fileExt' => [
                                         'provider' => 'bc',
                                         'rule' => ['fileExt', $options['fileExt']],
-                                        'message' => __('ファイル形式が無効です。')
+                                        'message' => __d('baser_core', 'ファイル形式が無効です。')
                                     ]
                                 ]);
                             }
@@ -300,17 +302,17 @@ class MailMessagesTable extends MailAppTable
                                 $validator->regex(
                                     $mailField->field_name,
                                     '/\A' . $options['regex'] . '\z/us',
-                                    __('形式が無効です。')
+                                    __d('baser_core', '形式が無効です。')
                                 );
                             }
                             break;
 
                         case 'VALID_EMAIL':
-                            $validator->email($mailField->field_name, false, __('Eメール形式で入力してください。'))
+                            $validator->email($mailField->field_name, false, __d('baser_core', 'Eメール形式で入力してください。'))
                                 ->regex(
                                     $mailField->field_name,
                                     '/^[a-zA-Z0-9!#$%&\’*+-\/=?^_`{|}~@.]*$/',
-                                    __('半角で入力してください。')
+                                    __d('baser_core', '半角で入力してください。')
                                 );
                             break;
 
@@ -318,7 +320,7 @@ class MailMessagesTable extends MailAppTable
                             $validator->add($mailField->field_name, [
                                 'alphaNumeric' => [
                                     'rule' => 'alphaNumeric',
-                                    'message' => __('数値形式で入力してください。')
+                                    'message' => __d('baser_core', '数値形式で入力してください。')
                                 ]
                             ]);
                             break;
@@ -329,7 +331,7 @@ class MailMessagesTable extends MailAppTable
                                     'dataArray' => [
                                         'provider' => 'mailMessage',
                                         'rule' => 'dataArray',
-                                        'message' => __('日付の形式が無効です。')
+                                        'message' => __d('baser_core', '日付の形式が無効です。')
                                     ]
                                 ]);
                             } else {
@@ -337,7 +339,7 @@ class MailMessagesTable extends MailAppTable
                                     'dateString' => [
                                         'provider' => 'mailMessage',
                                         'rule' => 'dateString',
-                                        'message' => __('日付の形式が無効です。')
+                                        'message' => __d('baser_core', '日付の形式が無効です。')
                                     ]
                                 ]);
                             }
@@ -347,7 +349,7 @@ class MailMessagesTable extends MailAppTable
                             $validator->regex(
                                 $mailField->field_name,
                                 '/^(|[ァ-ヾ 　]+)$/u',
-                                __('全て全角カタカナで入力してください。')
+                                __d('baser_core', '全て全角カタカナで入力してください。')
                             );
                             break;
 
@@ -355,7 +357,7 @@ class MailMessagesTable extends MailAppTable
                             $validator->regex(
                                 $mailField->field_name,
                                 '/^([　 \t\r\n]|[ぁ-ん]|[ー])+$/u',
-                                __('全て全角ひらがなで入力してください。')
+                                __d('baser_core', '全て全角ひらがなで入力してください。')
                             );
                             break;
 
@@ -373,7 +375,7 @@ class MailMessagesTable extends MailAppTable
                                     'checkSame' => [
                                         'provider' => 'mailMessage',
                                         'rule' => ['checkSame', $target],
-                                        'message' => __('入力データが一致していません。')
+                                        'message' => __d('baser_core', '入力データが一致していません。')
                                     ]
                                 ]);
                             }
@@ -447,7 +449,7 @@ class MailMessagesTable extends MailAppTable
             }
             $count = count($dist);
             if ($i > 0 && $i < $count) {
-                $entity->setError($key . '_not_complate', [__('入力データが不完全です。')]);
+                $entity->setError($key . '_not_complate', [__d('baser_core', '入力データが不完全です。')]);
                 foreach($dist as $jValue) {
                     $entity->setError($jValue['name'], []);
                 }
@@ -485,7 +487,7 @@ class MailMessagesTable extends MailAppTable
                 }
             }
             if ($inputCount !== 0 && $inputCount !== count($timeNames)) {
-                $this->invalidate($dist['name'] . '', __('入力データが不完全です。'));
+                $this->invalidate($dist['name'] . '', __d('baser_core', '入力データが不完全です。'));
             }
         }
     }
@@ -665,43 +667,32 @@ class MailMessagesTable extends MailAppTable
      * 受信メッセージの内容を表示状態に変換する
      *
      * @param int $id
-     * @param array $messages
+     * @param $messages
      * @return array
      */
-    public function convertMessageToCsv($id, $messages)
+    public function convertMessageToCsv($messages)
     {
-        App::uses('MailField', 'BcMail.Model');
-        $mailFieldClass = new MailField();
-
-        // フィールドの一覧を取得する
-        $mailFields = $mailFieldClass->find('all', ['conditions' => ['MailField.mail_content_id' => $id], 'order' => 'sort']);
-
         // フィールド名とデータの変換に必要なヘルパーを読み込む
-        App::uses('MaildataHelper', 'BcMail.View/Helper');
-        App::uses('MailfieldHelper', 'BcMail.View/Helper');
-        $Maildata = new MaildataHelper(new View());
-        $Mailfield = new MailfieldHelper(new View());
-
+        $maildataHelper = new MaildataHelper(new View());
+        $csv = [];
         foreach($messages as $key => $message) {
             $inData = [];
-            $inData['NO'] = $message[$this->alias]['id'];
-            foreach($mailFields as $mailField) {
+            $inData['NO'] = $message->id;
+            foreach($this->mailFields as $mailField) {
                 if ($mailField->type === 'file') {
-                    $inData[$mailField->field_name . ' (' . $mailField->name . ')'] = $message[$this->alias][$mailField->field_name];
+                    $inData[$mailField->field_name . ' (' . $mailField->name . ')'] = $message->{$mailField->field_name};
                 } else {
-                    $inData[$mailField->field_name . ' (' . $mailField->name . ')'] = $Maildata->toDisplayString(
+                    $inData[$mailField->field_name . ' (' . $mailField->name . ')'] = $maildataHelper->toDisplayString(
                         $mailField->type,
-                        $message[$this->alias][$mailField->field_name],
-                        $Mailfield->getOptions($mailField['MailField'])
+                        $message->{$mailField->field_name}
                     );
                 }
             }
-            $inData['作成日'] = $message[$this->alias]['created'];
-            $inData['更新日'] = $message[$this->alias]['modified'];
-            $messages[$key][$this->alias] = $inData;
+            $inData['作成日'] = $message->created;
+            $inData['更新日'] = $message->modified;
+            $csv[$key]['MailMessage'] = $inData;
         }
-
-        return $messages;
+        return $csv;
     }
 
     /**

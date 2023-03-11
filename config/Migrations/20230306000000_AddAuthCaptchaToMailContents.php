@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 use BaserCore\Database\Migration\BcMigration;
 
-class CreateMailMessages extends BcMigration
+class AddAuthCaptchaToMailContents extends BcMigration
 {
     /**
      * Up Method.
@@ -14,18 +14,13 @@ class CreateMailMessages extends BcMigration
      */
     public function up()
     {
-        $this->table('mail_messages')
-            ->addColumn('created', 'datetime', [
-                'default' => null,
-                'limit' => null,
+        $this->table('mail_contents')
+            ->addColumn('auth_captcha', 'boolean', [
+                'after' => 'save_info',
+                'default' => false,
                 'null' => true,
             ])
-            ->addColumn('modified', 'datetime', [
-                'default' => null,
-                'limit' => null,
-                'null' => true,
-            ])
-            ->create();
+            ->update();
     }
 
     /**
@@ -37,6 +32,8 @@ class CreateMailMessages extends BcMigration
      */
     public function down()
     {
-        $this->table('mail_messages')->drop()->save();
+        $this->table('mail_contents')
+            ->removeColumn('auth_captcha')
+            ->update();
     }
 }

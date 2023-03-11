@@ -19,6 +19,7 @@ use BaserCore\Utility\BcContainerTrait;
 use BaserCore\Utility\BcUtil;
 use BcMail\Model\Table\MailContentsTable;
 use Cake\Datasource\EntityInterface;
+use Cake\ORM\Query;
 use Cake\ORM\TableRegistry;
 
 /**
@@ -55,9 +56,9 @@ class MailContentsService implements MailContentsServiceInterface
     public function getNew()
     {
         return $this->MailContents->newEntity([
-            'sender_name' => __d('baser', '送信先名を入力してください'),
-            'subject_user' => __d('baser', 'お問い合わせ頂きありがとうございます'),
-            'subject_admin' => __d('baser', 'お問い合わせを頂きました'),
+            'sender_name' => __d('baser_core', '送信先名を入力してください'),
+            'subject_user' => __d('baser_core', 'お問い合わせ頂きありがとうございます'),
+            'subject_admin' => __d('baser_core', 'お問い合わせを頂きました'),
             'layout_template' => 'default',
             'form_template' => 'default',
             'mail_template' => 'mail_default',
@@ -91,7 +92,7 @@ class MailContentsService implements MailContentsServiceInterface
             $mailMessagesService = $this->getService(MailMessagesServiceInterface::class);
             if (!$mailMessagesService->createTable($mailContent->id)) {
                 $this->MailContents->getConnection()->rollback();
-                throw new BcException(__d('baser', 'データベースに問題があります。メール受信データ保存用テーブルの更新処理に失敗しました。'));
+                throw new BcException(__d('baser_core', 'データベースに問題があります。メール受信データ保存用テーブルの更新処理に失敗しました。'));
             }
         } catch (\Throwable $e) {
             $this->MailContents->getConnection()->rollback();
@@ -112,7 +113,7 @@ class MailContentsService implements MailContentsServiceInterface
     public function update(EntityInterface $entity, array $postData): ?EntityInterface
     {
         if (BcUtil::isOverPostSize()) {
-            throw new BcException(__d('baser', '送信できるデータ量を超えています。合計で {0} 以内のデータを送信してください。', ini_get('post_max_size')));
+            throw new BcException(__d('baser_core', '送信できるデータ量を超えています。合計で {0} 以内のデータを送信してください。', ini_get('post_max_size')));
         }
         if (empty($postData['sender_1_'])) {
             $postData['sender_1'] = '';
@@ -156,7 +157,7 @@ class MailContentsService implements MailContentsServiceInterface
      */
     public function get(int $id, array $options = [])
     {
-        $options = array_merge_recursive([
+        $options = array_merge([
             'contain' => [
                 'Contents' => ['Sites'],
                 'MailFields'
@@ -165,14 +166,55 @@ class MailContentsService implements MailContentsServiceInterface
         return $this->MailContents->get($id, ['contain' => $options['contain']]);
     }
 
-    public function getIndex()
+    /**
+     * メールコンテンツ一覧を取得する
+     *
+     * @return Query
+     * @checked
+     * @noTodo
+     */
+    public function getIndex(array $queryParams = []): Query
     {
+        $options = array_merge([
+            'num' => null,
+            'limit' => null,
+            'direction' => 'DESC',    // 並び方向
+            'order' => 'posted',    // 並び順対象のフィールド
+            'sort' => null,
+            'id' => null,
+            'no' => null,
+            'status' => null,
+        ], $queryParams);
 
+        if (!empty($options['num'])) $options['limit'] = $options['num'];
+        if (!empty($options['sort'])) $options['order'] = $options['sort'];
+        unset($options['num'], $options['sort']);
+
+        // ステータス
+        $conditions = [];
+        if ($options['status'] === 'publish') {
+            $conditions = $this->MailContents->Contents->getConditionAllowPublish();
+        }
+
+        $query = $this->MailContents->find()->contain('Contents');
+        if (!is_null($options['limit'])) $query->limit($options['limit']);
+        return $query->where($conditions);
     }
 
+    /**
+     * リストデータ取得
+     * @return array
+     *
+     * @checked
+     * @noTodo
+     * @checked
+     */
     public function getList()
     {
-
+        return $this->MailContents->find('list', [
+            'keyField' => 'id',
+            'valueField' => 'content.title'
+        ])->contain(['Contents'])->toArray();
     }
 
     /**

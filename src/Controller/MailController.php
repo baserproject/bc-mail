@@ -12,6 +12,7 @@
 namespace BcMail\Controller;
 
 use BaserCore\Error\BcException;
+use BaserCore\Service\BcCaptchaServiceInterface;
 use BaserCore\Utility\BcSiteConfig;
 use BcMail\Service\Front\MailFrontService;
 use BcMail\Service\Front\MailFrontServiceInterface;
@@ -46,7 +47,6 @@ class MailController extends MailFrontAppController
     {
         parent::initialize();
         $this->loadComponent('BaserCore.BcFrontContents', ['viewContentCrumb' => true]);
-        $this->loadComponent('BaserCore.BcCaptcha');
     }
 
     /**
@@ -70,7 +70,8 @@ class MailController extends MailFrontAppController
      */
     public function beforeFilter(EventInterface $event)
     {
-        parent::beforeFilter($event);
+        $redirect = parent::beforeFilter($event);
+        if($redirect) return $redirect;
 
         if (!$this->request->getParam('entityId')) {
             $this->notFound();
@@ -172,7 +173,11 @@ class MailController extends MailFrontAppController
      * @checked
      * @noTodo
      */
-    public function confirm(MailFrontServiceInterface $service, MailContentsServiceInterface $mailContentsService)
+    public function confirm(
+        MailFrontServiceInterface $service,
+        MailContentsServiceInterface $mailContentsService,
+        MailMessagesServiceInterface $mailMessagesService,
+        BcCaptchaServiceInterface $bcCaptchaService)
     {
         $mailContent = $mailContentsService->get($this->request->getParam('entityId'));
         if (!$service->isAccepting($mailContent)) {
@@ -181,14 +186,25 @@ class MailController extends MailFrontAppController
         }
 
         if (!$this->getRequest()->getSession()->read('BcMail.valid') || !$this->getRequest()->is(['post', 'put'])) {
-            $this->BcMessage->setError('エラーが発生しました。もう一度操作してください。');
+            $this->BcMessage->setError(__d('baser_core', 'エラーが発生しました。もう一度操作してください。'));
             $this->redirect($this->request->getParam('Content.url') . '/index');
         }
 
         try {
+            // 画像認証
+            if ($mailContent->auth_captcha && !$bcCaptchaService->check(
+                $this->getRequest(),
+                $this->getRequest()->getData('captcha_id'),
+                $this->getRequest()->getData('auth_captcha')
+            )) {
+                $mailMessage = $mailMessagesService->MailMessages->newEntity($this->getRequest()->getData());
+                $mailMessage->setError('auth_captcha', __d('baser_core', '画像の文字が間違っています。再度入力してください。'));
+                throw new PersistenceFailedException($mailMessage, __d('baser_core', '入力エラーです。内容を見直してください。'));
+            }
             $mailMessage = $service->confirm($mailContent, $this->getRequest()->getData());
         } catch (PersistenceFailedException $e) {
             $mailMessage = $e->getEntity();
+            $mailMessage->auth_captcha = '';
             $this->BcMessage->setError($e->getMessage());
         } catch (BcException $e) {
             $this->BcMessage->setError($e->getMessage());
@@ -211,7 +227,8 @@ class MailController extends MailFrontAppController
     public function submit(
         MailFrontServiceInterface $service,
         MailContentsServiceInterface $mailContentsService,
-        MailMessagesServiceInterface $mailMessagesService
+        MailMessagesServiceInterface $mailMessagesService,
+        BcCaptchaServiceInterface $bcCaptchaService
     )
     {
         $mailContent = $mailContentsService->get($this->request->getParam('entityId'));
@@ -220,7 +237,7 @@ class MailController extends MailFrontAppController
             return;
         }
         if (!$this->getRequest()->getSession()->read('BcMail.valid') || !$this->getRequest()->is(['post', 'put'])) {
-            $this->BcMessage->setError('エラーが発生しました。もう一度操作してください。');
+            $this->BcMessage->setError(__d('baser_core', 'エラーが発生しました。もう一度操作してください。'));
             $this->redirect($this->request->getParam('Content.url') . '/index');
         }
 
@@ -235,16 +252,28 @@ class MailController extends MailFrontAppController
 
         // メッセージ保存
         try {
+            // 画像認証
+            if ($mailContent->auth_captcha && !$bcCaptchaService->check(
+                $this->getRequest(),
+                $this->getRequest()->getData('captcha_id'),
+                $this->getRequest()->getData('auth_captcha')
+            )) {
+                $mailMessage = $mailMessagesService->MailMessages->newEntity($this->getRequest()->getData());
+                $mailMessage->setError('auth_captcha', __d('baser_core', '画像の文字が間違っています。再度入力してください。'));
+                throw new PersistenceFailedException($mailMessage, __d('baser_core', '入力エラーです。内容を見直してください。'));
+            }
+
             $mailMessagesService->setup($mailContent->id);
             $entity = $mailMessagesService->create($mailContent, $this->getRequest()->getData());
         } catch (PersistenceFailedException $e) {
             $entity = $e->getEntity();
-            $this->BcMessage->setError(__('入力内容を確認し、再度送信してください。'));
+            $mailMessage->auth_captcha = '';
+            $this->BcMessage->setError(__d('baser_core', '入力内容を確認し、再度送信してください。'));
             $this->set($service->getViewVarsForConfirm($mailContent, $entity));
             $this->render($service->getConfirmTemplate($mailContent));
             return;
         } catch (\Throwable $e) {
-            $this->BcMessage->setError(__('エラー : 送信中にエラーが発生しました。しばらくたってから再度送信お願いします。') . $e->getMessage());
+            $this->BcMessage->setError(__d('baser_core', 'エラー : 送信中にエラーが発生しました。しばらくたってから再度送信お願いします。') . $e->getMessage());
             return $this->redirect($this->request->getAttribute('currentContent')->url . '/index');
         }
 
@@ -263,7 +292,7 @@ class MailController extends MailFrontAppController
             $service->sendMail($mailContent, $entity, $sendEmailOptions);
             $this->getRequest()->getSession()->delete('BcMail.valid');
         } catch (\Throwable $e) {
-            $this->BcMessage->setError(__('エラー : 送信中にエラーが発生しました。しばらくたってから再度送信お願いします。') . $e->getMessage());
+            $this->BcMessage->setError(__d('baser_core', 'エラー : 送信中にエラーが発生しました。しばらくたってから再度送信お願いします。') . $e->getMessage());
             return $this->redirect($this->request->getAttribute('currentContent')->url . '/index');
         }
 
@@ -297,6 +326,18 @@ class MailController extends MailFrontAppController
             'currentWidgetAreaId' => $mailContent->widget_area?? BcSiteConfig::get('widget_area')
         ]);
         $this->render($service->getThanksTemplate($mailContent));
+    }
+
+    /**
+     * 認証用のキャプチャ画像を表示する
+     *
+     * @return void
+     */
+    public function captcha(BcCaptchaServiceInterface $service, string $token)
+    {
+        $this->viewBuilder()->disableAutoLayout();
+        $service->render($this->getRequest(), $token);
+        exit();
     }
 
 }

@@ -19,9 +19,9 @@ return [
             'Plugins' => [
                 'menus' => [
                     'MailConfigs' => [
-                        'title' => __d('baser', 'メール基本設定'),
+                        'title' => __d('baser_core', 'メール基本設定'),
                         'url' => [
-                            'Admin' => true,
+                            'prefix' => 'Admin',
                             'plugin' => 'BcMail',
                             'controller' => 'MailConfigs',
                             'action' => 'index'
@@ -38,7 +38,7 @@ return [
         'items' => [
             'BcMail' => [
                 'MailContent' => [
-                    'title' => __d('baser', 'メールフォーム'),
+                    'title' => __d('baser_core', 'メールフォーム'),
                     'multiple' => true,
                     'preview' => true,
                     'icon' => 'bca-icon--mail',
@@ -82,7 +82,7 @@ return [
      */
     'BcShortCode' => [
         'BcMail' => [
-            'BcMail.getForm'
+            'Mail.getForm'
         ]
     ]
 ];
