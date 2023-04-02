@@ -7,7 +7,6 @@ return;
  *
  * @copyright       Copyright (c) baserCMS Users Community
  * @link            https://basercms.net baserCMS Project
- * @package         Mail.Test.Case.View.Helper
  * @since           baserCMS v 4.0.3
  * @license         https://basercms.net/license/index.html
  */
@@ -131,7 +130,9 @@ class MailHelperTest extends BaserTestCase
         $expected = [
             'mail_default' => 'mail_default',
             'default' => 'default',
-            'reset_password' => 'reset_password'
+            'reset_password' => 'reset_password',
+            'send_activate_url' => 'send_activate_url',
+            'send_activate_urls' => 'send_activate_urls',
         ];
         $this->assertEquals($result, $expected, 'メールテンプレートの取得結果が違います。');
     }

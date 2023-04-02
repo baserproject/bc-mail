@@ -9,12 +9,9 @@
  * @license       https://basercms.net/license/index.html MIT License
  */
 
-namespace BcMail\Controller\Api;
+namespace BcMail\Controller\Api\Admin;
 
-use BaserCore\Annotation\NoTodo;
-use BaserCore\Annotation\Checked;
-use BaserCore\Annotation\UnitTest;
-use BaserCore\Controller\Api\BcApiController;
+use BaserCore\Controller\Api\Admin\BcAdminApiController;
 use BaserCore\View\Helper\BcCsvHelper;
 use BcMail\Service\Admin\MailMessagesAdminServiceInterface;
 use BcMail\Service\MailContentsServiceInterface;
@@ -23,11 +20,14 @@ use BcMail\Service\MailMessagesServiceInterface;
 use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\ORM\Exception\PersistenceFailedException;
 use Cake\View\View;
+use BaserCore\Annotation\UnitTest;
+use BaserCore\Annotation\NoTodo;
+use BaserCore\Annotation\Checked;
 
 /**
  * メールフィールドコントローラー
  */
-class MailMessagesController extends BcApiController
+class MailMessagesController extends BcAdminApiController
 {
 
     /**
