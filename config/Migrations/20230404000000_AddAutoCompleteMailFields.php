@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 use BaserCore\Database\Migration\BcMigration;
 
-class CreateMailMessage2 extends BcMigration
+class AddAutoCompleteMailFields extends BcMigration
 {
     /**
      * Up Method.
@@ -14,25 +14,13 @@ class CreateMailMessage2 extends BcMigration
      */
     public function up()
     {
-        $this->table('mail_message_2', [
-            'collation' => 'utf8mb4_general_ci'
-         ])
-            ->addColumn('modified', 'datetime', [
+        $this->table('mail_fields')
+            ->addColumn('autocomplete', 'string', [
+                'after' => 'options',
                 'default' => null,
-                'limit' => null,
                 'null' => true,
             ])
-            ->addColumn('created', 'datetime', [
-                'default' => null,
-                'limit' => null,
-                'null' => true,
-            ])
-            ->addColumn('aaa', 'text', [
-                'default' => null,
-                'limit' => null,
-                'null' => true,
-            ])
-            ->create();
+            ->update();
     }
 
     /**
@@ -44,6 +32,8 @@ class CreateMailMessage2 extends BcMigration
      */
     public function down()
     {
-        $this->table('mail_message_2')->drop()->save();
+        $this->table('mail_fields')
+            ->removeColumn('autocomplete')
+            ->update();
     }
 }
