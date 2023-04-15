@@ -14,6 +14,7 @@ namespace BcMail\View\Helper;
 use BaserCore\View\Helper\BcBaserHelper;
 use BaserCore\View\Helper\BcFreezeHelper;
 use BcMail\Model\Entity\MailField;
+use Cake\Datasource\ResultSetInterface;
 use Cake\ORM\ResultSet;
 use BaserCore\Annotation\UnitTest;
 use BaserCore\Annotation\NoTodo;
@@ -185,21 +186,6 @@ class MailformHelper extends BcFreezeHelper
                 $out = $this->datepicker($fieldName, $attributes);
                 break;
 
-            case 'date_time_wareki':
-                unset($attributes['size']);
-                unset($attributes['rows']);
-                unset($attributes['maxlength']);
-                unset($attributes['empty']);
-                $attributes['monthNames'] = false;
-                if (isset($attributes['minYear']) && $attributes['minYear'] === 'today') {
-                    $attributes['minYear'] = (int)date('Y');
-                }
-                if (isset($attributes['maxYear']) && $attributes['maxYear'] === 'today') {
-                    $attributes['maxYear'] = (int)date('Y');
-                }
-                $out = $this->dateTime($fieldName, 'WMD', null, $attributes);
-                break;
-
             case 'textarea':
                 $attributes['cols'] = $attributes['size'];
                 unset($attributes['empty']);
@@ -216,6 +202,14 @@ class MailformHelper extends BcFreezeHelper
                 $attributes['type'] = 'tel';
                 $out = $this->tel($fieldName, $attributes);
                 break;
+
+			case 'number':
+				unset($attributes['separator']);
+				unset($attributes['rows']);
+				unset($attributes['empty']);
+				$attributes['type'] = 'number';
+				$out = $this->number($fieldName, $attributes);
+				break;
 
             case 'password':
                 unset($attributes['rows']);
@@ -282,7 +276,7 @@ class MailformHelper extends BcFreezeHelper
     /**
      * 指定したgroup_validをもつフィールドのエラーを取得する
      *
-     * @param array $mailFields
+     * @param ResultSetInterface $mailFields
      * @param string $groupValid
      * @param array $options
      * @param bool $distinct 同じエラーメッセージをまとめる
@@ -290,7 +284,7 @@ class MailformHelper extends BcFreezeHelper
      * @checked
      * @noTodo
      */
-    public function getGroupValidErrors(array $mailFields, string $groupValid, array $options = [], bool $distinct = true)
+    public function getGroupValidErrors(ResultSetInterface $mailFields, string $groupValid, array $options = [], bool $distinct = true)
     {
         $errors = [];
         foreach ($mailFields as $mailField) {
