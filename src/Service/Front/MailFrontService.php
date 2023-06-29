@@ -58,6 +58,7 @@ class MailFrontService implements MailFrontServiceInterface
      *
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function __construct()
     {
@@ -71,6 +72,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return array
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getViewVarsForIndex(EntityInterface $mailContent, EntityInterface $mailMessage): array
     {
@@ -90,6 +92,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @param Controller $controller
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function setupPreviewForIndex(Controller $controller): void
     {
@@ -127,6 +130,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return array
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getViewVarsForConfirm(EntityInterface $mailContent, EntityInterface $mailMessage): array
     {
@@ -154,6 +158,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @param EntityInterface $mailContent
      * @param array $postData
      * @return EntityInterface
+     * @unitTest
      */
     public function confirm(EntityInterface $mailContent, array $postData): EntityInterface
     {
@@ -193,6 +198,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @throws \Throwable
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function sendMail(EntityInterface $mailContent, EntityInterface $mailMessage, array $sendEmailOptions)
     {
@@ -250,6 +256,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return string
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getAdminMail(EntityInterface $mailContent): string
     {
@@ -268,6 +275,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return string
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getUserMail(ResultSetInterface $mailFields, EntityInterface $mailMessage): string
     {
@@ -293,6 +301,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @param Query $mailFields
      * @param EntityInterface $mailMessage
      * @return array
+     * @unitTest
      */
     public function getAttachments(ResultSetInterface $mailFields, EntityInterface $mailMessage): array
     {
@@ -320,6 +329,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return array
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function createMailData(
         EntityInterface $mailConfig,
@@ -350,6 +360,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return array
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getEditLink(int $mailContentId)
     {
@@ -384,6 +395,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return boolean
      * @checked
      * @noTodo
+     * @unitTest
      */
     private function _checkDirectoryRraversal(int $mailContentId, array $postData)
     {
@@ -412,6 +424,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return    bool
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function isAccepting(EntityInterface $mailContent): bool
     {
@@ -436,6 +449,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return string
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getIndexTemplate(EntityInterface $mailContent): string
     {
@@ -448,6 +462,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return string
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getConfirmTemplate(EntityInterface $mailContent): string
     {
@@ -460,6 +475,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return string
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getUnpublishTemplate(EntityInterface $mailContent): string
     {
@@ -472,6 +488,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return string
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getThanksTemplate(EntityInterface $mailContent): string
     {
