@@ -17,6 +17,7 @@ use BcMail\Service\MailMessagesServiceInterface;
 use Cake\Core\Configure;
 use Cake\Core\Plugin;
 use Cake\ORM\Exception\PersistenceFailedException;
+use Cake\ORM\Query;
 use Cake\Validation\Validator;
 use BaserCore\Annotation\UnitTest;
 use BaserCore\Annotation\NoTodo;
@@ -138,6 +139,17 @@ class MailContentsTable extends MailAppTable
         $validator
             ->scalar('redirect_url')
             ->maxLength('redirect_url', 255, __d('baser_core', 'リダイレクトURLは255文字以内で入力してください。'));
+
+        // description
+        $validator
+            ->scalar('description')
+            ->add('description', [
+                'containsScript' => [
+                    'rule' => ['containsScript'],
+                    'provider' => 'bc',
+                    'message' => __d('baser_core', '説明文でスクリプトの入力は許可されていません。')
+                ]
+            ]);
 
         // sender_1
         $validator
@@ -375,12 +387,12 @@ class MailContentsTable extends MailAppTable
     public function getConditionAllowAccepting()
     {
         $conditions[] = ['or' => [
-            [$this->alias . '.publish_begin <=' => date('Y-m-d H:i:s')],
-            [$this->alias . '.publish_begin' => null],
+            ['MailContents.publish_begin <=' => date('Y-m-d H:i:s')],
+            ['MailContents.publish_begin IS' => null],
         ]];
         $conditions[] = ['or' => [
-            [$this->alias . '.publish_end >=' => date('Y-m-d H:i:s')],
-            [$this->alias . '.publish_end' => null],
+            ['MailContents.publish_end >=' => date('Y-m-d H:i:s')],
+            ['MailContents.publish_end IS' => null],
         ]];
         return $conditions;
     }
@@ -388,22 +400,12 @@ class MailContentsTable extends MailAppTable
     /**
      * 公開されたコンテンツを取得する
      *
-     * @param Model $model
-     * @param string $type
-     * @param array $query
-     * @return array|null
+     * @param Query $query
+     * @return Query
      */
-    public function findAccepting($type = 'first', $query = [])
+    public function findAccepting(Query $query)
     {
-        $getConditionAllowAccepting = $this->getConditionAllowAccepting();
-        if (!empty($query['conditions'])) {
-            $query['conditions'] = array_merge(
-                $getConditionAllowAccepting,
-                $query['conditions']
-            );
-        } else {
-            $query['conditions'] = $getConditionAllowAccepting;
-        }
-        return $this->find($type, $query);
+        return $query->where($this->getConditionAllowAccepting());
     }
+
 }
