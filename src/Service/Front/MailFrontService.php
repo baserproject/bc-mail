@@ -127,7 +127,6 @@ class MailFrontService implements MailFrontServiceInterface
         ));
         $controller->set('title', $mailContent->content->title);
         $controller->viewBuilder()->setTemplate($this->getIndexTemplate($mailContent));
-        $controller->viewBuilder()->setClassName('BcMail.MailFrontApp');
     }
 
     /**
