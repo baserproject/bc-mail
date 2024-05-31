@@ -296,8 +296,6 @@ class MailformHelper extends BcFreezeHelper
      */
     public function getGroupValidErrors(ResultSetInterface $mailFields, string $groupValid, array $options = [], bool $distinct = true)
     {
-        // 呼び出し元のイテレーションに影響が出ないようにクローンを作成
-        $mailFields = clone $mailFields;
         $errors = [];
         foreach ($mailFields as $mailField) {
             if ($mailField->group_valid !== $groupValid) continue;

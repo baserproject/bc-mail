@@ -23,7 +23,6 @@ use BcMail\Model\Entity\MailContent;
 use BcMail\Model\Entity\MailMessage;
 use BcMail\Model\Table\MailMessagesTable;
 use Cake\Datasource\EntityInterface;
-use Cake\Datasource\ResultSetInterface;
 use Cake\ORM\Exception\PersistenceFailedException;
 use Cake\ORM\TableRegistry;
 
@@ -39,18 +38,6 @@ class MailMessagesService implements MailMessagesServiceInterface
      * Trait
      */
     use BcContainerTrait;
-
-    /**
-     * BcDatabaseService
-     * @var BcDatabaseServiceInterface|BcDatabaseService
-     */
-    public BcDatabaseServiceInterface|BcDatabaseService $BcDatabaseService;
-
-    /**
-     * BcDatabaseService
-     * @var MailMessagesTable|\Cake\ORM\Table
-     */
-    public MailMessagesTable|\Cake\ORM\Table $MailMessages;
 
     /**
      * Constructor
@@ -145,32 +132,9 @@ class MailMessagesService implements MailMessagesServiceInterface
             $this->MailMessages->convertToDb($mailFields, $entity);
             if ($mailContent->save_info) {
                 return $this->MailMessages->saveOrFail($entity);
-            } else {
-                return $entity;
             }
         }
-        throw new PersistenceFailedException($entity, __d('baser_core', '入力エラーです。内容を見直してください。'));
-    }
-
-    /**
-     * エンティティをフォーム用のデータに変換する
-     *
-     * @param EntityInterface $mailMessage
-     * @return EntityInterface
-     * @checked
-     * @noTodo
-     */
-    public function convertToForm(EntityInterface $mailMessage)
-    {
-        foreach($this->MailMessages->mailFields as $mailField) {
-            if (empty($mailMessage->{$mailField->field_name})) continue;
-            $value = $mailMessage->{$mailField->field_name};
-            // マルチチェックのデータを配列に変換
-            if ($mailField->type === 'multi_check' && $mailField->use_field && $value && strpos($value, '|') !== false) {
-                $mailMessage->{$mailField->field_name} = explode("|", $value);
-            }
-        }
-        return $mailMessage;
+        throw new PersistenceFailedException($validateEntity, __d('baser_core', '入力エラーです。内容を見直してください。'));
     }
 
     /**
@@ -425,10 +389,7 @@ class MailMessagesService implements MailMessagesServiceInterface
                 // 対象フィールドがあれば、バリデートグループごとに配列に格納する
                 if (is_null($mailField->default_value) || $mailField->default_value === "") continue;
                 if ($mailField->type === 'multi_check') {
-                    $messageArray[$mailField['field_name']] = array_map(function($value) {
-                        // \r が含まれている可能性があるため除外する
-                        return trim($value);
-                    }, explode("\n", $mailField->default_value));
+                    $messageArray[$mailField['field_name']][0] = $mailField->default_value;
                 } else {
                     $messageArray[$mailField['field_name']] = $mailField->default_value;
                 }
@@ -440,9 +401,7 @@ class MailMessagesService implements MailMessagesServiceInterface
                 $messageArray[$key] = h(BcUtil::base64UrlSafeDecode($value));
             }
         }
-
-        // 配列が除外されてしまうため newEntity() は利用しない
-        return new MailMessage($messageArray, ['source' => 'BcMail.MailMessages']);
+        return $this->MailMessages->newEntity($messageArray, ['validate' => false]);
     }
 
     /**
@@ -471,7 +430,6 @@ class MailMessagesService implements MailMessagesServiceInterface
             if ($value !== null) {
                 // 半角処理
                 if ($mailField->auto_convert === 'CONVERT_HANKAKU') {
-                    $value = str_replace('ー', '-', $value); // 全角ハイフンを半角ハイフンに置換
                     $value = mb_convert_kana($value, 'a');
                 }
                 // 全角処理
