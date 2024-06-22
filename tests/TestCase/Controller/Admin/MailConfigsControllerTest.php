@@ -1,6 +1,4 @@
 <?php
-// TODO ucmitz  : コード確認要
-return;
 /**
  * baserCMS :  Based Website Development Project <https://basercms.net>
  * Copyright (c) baserCMS Users Community <https://basercms.net/community/>
@@ -10,37 +8,36 @@ return;
  * @since           baserCMS v 3.0.0
  * @license         https://basercms.net/license/index.html
  */
+namespace BcMail\Test\TestCase\Controller\Admin;
+use BaserCore\Test\Scenario\InitAppScenario;
+use BaserCore\TestSuite\BcTestCase;
+use CakephpFixtureFactories\Scenario\ScenarioAwareTrait;
 
-App::uses('MailAppController', 'BcMail.Controller');
-App::uses('MailConfigsController', 'BcMail.Controller');
-App::uses('SessionComponent', 'Controller/Component');
-
-class MailConfigsControllerTest extends BaserTestCase
+class MailConfigsControllerTest extends BcTestCase
 {
+    /**
+     * ScenarioAwareTrait
+     */
+    use ScenarioAwareTrait;
 
-    public $fixtures = [
-        // 'baser.Default.SiteConfig',
-        'baser.Default.User',
-        'baser.Default.UserGroup',
-        'baser.Default.Plugin',
-        'baser.Default.Permission',
-        'baser.Default.Favorite',
-        'plugin.mail.Default/MailConfig',
-    ];
-
-    public function setUp()
+    /**
+     * set up
+     *
+     * @return void
+     */
+    public function setUp(): void
     {
-        $this->MailConfigs = new MailConfigsController(new CakeRequest(null, false), new CakeResponse());
-
-        $this->Case = $this->getMockForAbstractClass('ControllerTestCase');
-
         parent::setUp();
+        $this->loadFixtureScenario(InitAppScenario::class);
     }
 
-    public function tearDown()
+    /**
+     * set up
+     *
+     * @return void
+     */
+    public function tearDown(): void
     {
-        unset($this->MailConfigs);
-        unset($this->Case);
         parent::tearDown();
     }
 
@@ -50,7 +47,7 @@ class MailConfigsControllerTest extends BaserTestCase
      * @param array $data requestのdata
      * @dataProvider admin_formDataProvider
      */
-    public function testAdmin_form($data, $expected)
+    public function test_index($data, $expected)
     {
         $this->markTestIncomplete('このテストは、まだ実装されていません。');
 
@@ -68,7 +65,7 @@ class MailConfigsControllerTest extends BaserTestCase
         $this->assertMatchesRegularExpression('/' . $expected . '/', $url);
     }
 
-    public function admin_formDataProvider()
+    public static function admin_formDataProvider()
     {
         return [
             [[], '\/admin\/users\/login'],
@@ -78,5 +75,25 @@ class MailConfigsControllerTest extends BaserTestCase
                 ]
             ], '\/admin\/mail\/mail_configs\/form']
         ];
+    }
+
+    /**
+     * test index
+     */
+    public function testIndex()
+    {
+        $this->loginAdmin($this->getRequest('/'));
+        $this->enableSecurityToken();
+        $this->enableCsrfToken();
+
+        //request is get
+        $this->get('/baser/admin/bc-mail/mail_configs/index');
+        $this->assertResponseOk();
+
+        //request is post
+        $this->post('/baser/admin/bc-mail/mail_configs/index', ['name_add' => 'test']);
+        $this->assertResponseCode(302);
+        $this->assertFlashMessage('メールプラグイン設定を保存しました。');
+        $this->assertRedirect('/baser/admin/bc-mail/mail_configs/index');
     }
 }

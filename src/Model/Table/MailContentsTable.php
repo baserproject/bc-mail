@@ -139,7 +139,9 @@ class MailContentsTable extends MailAppTable
 
         // redirect_url
         $validator
+            ->allowEmptyString('redirect_url')
             ->scalar('redirect_url')
+            ->regex('redirect_url', '/^http|^\/.*/', __d('baser_core', 'リダイレクトURLはURLの形式を入力してください。'))
             ->maxLength('redirect_url', 255, __d('baser_core', 'リダイレクトURLは255文字以内で入力してください。'));
 
         // description
@@ -243,6 +245,7 @@ class MailContentsTable extends MailAppTable
      * @return array|false
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function createSearchIndex($mailContent)
     {
@@ -331,7 +334,7 @@ class MailContentsTable extends MailAppTable
             // メールフィールドコピー
             $mailFields = $this->MailFields->find()
                 ->where(['MailFields.mail_content_id' => $id])
-                ->order(['MailFields.sort'])
+                ->orderBy(['MailFields.sort'])
                 ->all();
             if($mailFields) {
                 foreach($mailFields as $field) {
