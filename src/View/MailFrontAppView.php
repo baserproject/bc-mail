@@ -32,13 +32,14 @@ class MailFrontAppView extends BcFrontAppView
      * initialize
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function initialize(): void
     {
         parent::initialize();
-        $this->loadHelper('BcMail.Mail');
-        $this->loadHelper('BcMail.Mailfield');
-        $this->loadHelper('BcMail.Mailform', ['templates' => 'BaserCore.bc_form']);
+        $this->addHelper('BcMail.Mail');
+        $this->addHelper('BcMail.Mailfield');
+        $this->addHelper('BcMail.Mailform', ['templates' => 'BaserCore.bc_form']);
     }
 
 }

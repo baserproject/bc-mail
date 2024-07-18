@@ -30,7 +30,7 @@ class MaildataHelper extends BcTextHelper
      * ヘルパー
      * @var string[]
      */
-    public $helpers = ['BcTime', 'BcBaser'];
+    public array $helpers = ['BcTime', 'BcBaser'];
 
     /**
      * メール表示用のデータを出力する
@@ -43,6 +43,7 @@ class MaildataHelper extends BcTextHelper
      * @return string メール用データ
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function control($type, $value, $escape = true)
     {
