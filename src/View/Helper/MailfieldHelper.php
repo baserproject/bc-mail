@@ -31,7 +31,6 @@ class MailfieldHelper extends Helper
      * @return array HTML属性
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function getAttributes($data)
     {
@@ -68,7 +67,6 @@ class MailfieldHelper extends Helper
      * @return array コントロールソース
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function getOptions($data)
     {

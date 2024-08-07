@@ -42,7 +42,7 @@ class BcMailServiceProvider extends ServiceProvider
      * Provides
      * @var string[]
      */
-    protected array $provides = [
+    protected $provides = [
         MailConfigsServiceInterface::class,
         MailContentsServiceInterface::class,
         MailContentsAdminServiceInterface::class,
@@ -58,7 +58,6 @@ class BcMailServiceProvider extends ServiceProvider
      * @param \Cake\Core\ContainerInterface $container
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function services($container): void
     {

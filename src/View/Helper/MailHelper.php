@@ -12,7 +12,6 @@
 namespace BcMail\View\Helper;
 
 use BaserCore\Utility\BcContainerTrait;
-use BaserCore\Utility\BcFolder;
 use BaserCore\Utility\BcText;
 use BaserCore\Utility\BcUtil;
 use BcMail\Model\Entity\MailContent;
@@ -45,7 +44,7 @@ class MailHelper extends Helper
      * ヘルパー
      * @var array
      */
-    public array $helpers = ['BcBaser', 'BcContents'];
+    public $helpers = ['BcBaser', 'BcContents'];
 
     /**
      * 現在のメールコンテンツ
@@ -103,13 +102,13 @@ class MailHelper extends Helper
         $templates = [];
         foreach ($templatesPaths as $templatePath) {
             $templatePath .= 'Mail' . DS;
-            $folder = new BcFolder($templatePath);
-            $files = $folder->getFolders();
-            if ($files) {
+            $folder = new Folder($templatePath);
+            $files = $folder->read(true, true);
+            if ($files[0]) {
                 if ($templates) {
-                    $templates = array_merge($templates, $files);
+                    $templates = array_merge($templates, $files[0]);
                 } else {
-                    $templates = $files;
+                    $templates = $files[0];
                 }
             }
         }
@@ -134,20 +133,20 @@ class MailHelper extends Helper
         $ext = Configure::read('BcApp.templateExt');
         foreach ($templatesPaths as $templatePath) {
             $templatePath .= 'email' . DS . 'text' . DS;
-            $folder = new BcFolder($templatePath);
-            $files = $folder->getFiles();
-            if ($files) {
-                foreach($files as $key => $file) {
+            $folder = new Folder($templatePath);
+            $files = $folder->read(true, true);
+            if ($files[1]) {
+                foreach($files[1] as $key => $file) {
                     if($file === 'mail_data.php' || !preg_match('/^mail_/', $file)) {
-                        unset($files[$key]);
+                        unset($files[1][$key]);
                     } else {
-                        $files[$key] = basename($file, $ext);
+                        $files[1][$key] = basename($file, $ext);
                     }
                 }
                 if ($templates) {
-                    $templates = array_merge($templates, $files);
+                    $templates = array_merge($templates, $files[1]);
                 } else {
-                    $templates = $files;
+                    $templates = $files[1];
                 }
             }
         }
@@ -160,7 +159,6 @@ class MailHelper extends Helper
      * @return string メールフォームの説明文
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function getDescription()
     {
@@ -173,7 +171,6 @@ class MailHelper extends Helper
      * @return void
      * @checked
      * @noTodo
-     * @unitTest ラッパーのためテスト不要
      */
     public function description()
     {
@@ -186,7 +183,6 @@ class MailHelper extends Helper
      * @return boolean 設定されている場合 true を返す
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function descriptionExists()
     {

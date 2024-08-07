@@ -20,7 +20,6 @@ use Cake\Datasource\EntityInterface;
 use Cake\Datasource\ResultSetInterface;
 use Cake\Event\Event;
 use Cake\ORM\Query;
-use Cake\ORM\Query\SelectQuery;
 use Cake\ORM\ResultSet;
 use Cake\ORM\TableRegistry;
 use BaserCore\Annotation\UnitTest;
@@ -58,7 +57,6 @@ class MailMessagesTable extends MailAppTable
      * @return void
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function initialize(array $config): void
     {
@@ -600,7 +598,7 @@ class MailMessagesTable extends MailAppTable
 
         // メール受信テーブルの作成
         $MailContent = ClassRegistry::init('BcMail.MailContent');
-        $contents = $MailContent->find('all', ...['recursive' => -1]);
+        $contents = $MailContent->find('all', ['recursive' => -1]);
 
         $result = true;
         foreach($contents as $content) {
@@ -619,12 +617,12 @@ class MailMessagesTable extends MailAppTable
      * find
      *
      * @param String $type
-     * @param mixed $args
-     * @return SelectQuery
+     * @param mixed $query
+     * @return Array
      */
-    public function find(string $type = 'all', mixed ...$args): SelectQuery
+    public function find(string $type = 'all', array $options = []): Query
     {
-        return parent::find($type, ...$args);
+        return parent::find($type, $options);
         // TODO ucmitz 以下、未検証
         // テーブルを共用しているため、環境によってはデータ取得に失敗する。
         // その原因のキャッシュメソッドをfalseに設定。

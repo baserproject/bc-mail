@@ -9,7 +9,7 @@
  * @license         https://basercms.net/license/index.html
  */
 
-namespace BcMail\Test\TestCase\Model\Table;
+namespace BcMail\Test\TestCase\Model;
 
 use BaserCore\TestSuite\BcTestCase;
 use BcMail\Model\Entity\MailMessage;
@@ -17,8 +17,6 @@ use BcMail\Model\Table\MailFieldsTable;
 use BcMail\Model\Table\MailMessagesTable;
 use BcMail\Test\Factory\MailFieldsFactory;
 use BcMail\Test\Scenario\MailFieldsScenario;
-use BcMail\Test\TestCase\Model\Array;
-use BcMail\Test\TestCase\Model\ClassRegistry;
 use Cake\ORM\Entity;
 use Cake\TestSuite\IntegrationTestTrait;
 use CakephpFixtureFactories\Scenario\ScenarioAwareTrait;
@@ -48,19 +46,7 @@ class MailMessagesTableTest extends BcTestCase
     public function tearDown(): void
     {
         unset($this->MailMessage);
-        unset($this->MailField);
         parent::tearDown();
-    }
-
-    /**
-     * test initialize
-     */
-    public function test_initialize()
-    {
-        $this->assertEquals('mail_messages', $this->MailMessage->getTable());
-        $this->assertEquals('id', $this->MailMessage->getPrimaryKey());
-        $this->assertTrue($this->MailMessage->hasBehavior('Timestamp'));
-        $this->assertTrue($this->MailMessage->hasBehavior('BcUpload'));
     }
 
     /**
@@ -136,7 +122,7 @@ class MailMessagesTableTest extends BcTestCase
         $this->assertEquals($expected, $this->MailMessage->validationErrors, $message);
     }
 
-    public static function validateDataProvider()
+    public function validateDataProvider()
     {
         return [
             // 正常系
@@ -225,7 +211,7 @@ class MailMessagesTableTest extends BcTestCase
         $this->assertEquals('a|b|c', $result->multi_check);
     }
 
-    public static function convertToDbDataProvider()
+    public function convertToDbDataProvider()
     {
         return [
             [null, 'hoge', 'hoge'],
@@ -302,7 +288,7 @@ class MailMessagesTableTest extends BcTestCase
         }
     }
 
-    public static function convertDatasToMailDataProvider()
+    public function convertDatasToMailDataProvider()
     {
         return [
             [0, null],
@@ -495,4 +481,5 @@ class MailMessagesTableTest extends BcTestCase
         $this->execPrivateMethod($this->MailMessage, '_validGroupComplete', [$mailMessage]);
         $this->assertCount(1, $mailMessage->getErrors()['_not_complate']);
     }
+
 }

@@ -29,7 +29,7 @@ class BcMailBaserHelper extends Helper implements BcPluginBaserHelperInterface
      * ヘルパー
      * @var array
      */
-    public array $helpers = [
+    public $helpers = [
         'BcMail.Mail',
         'BcMail.Mailform'
     ];
@@ -40,7 +40,6 @@ class BcMailBaserHelper extends Helper implements BcPluginBaserHelperInterface
      * @return array[]
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function methods(): array
     {

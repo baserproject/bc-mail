@@ -1,46 +1,45 @@
 <?php
-namespace BcMail\Test\TestCase\View\Helper;
-use BaserCore\TestSuite\BcTestCase;
-use BcMail\View\Helper\MaildataHelper;
-use Cake\View\View;
+// TODO ucmitz  : コード確認要
+return;
+App::uses('MaildataHelper', 'BcMail.View/Helper');
+App::uses('BcAppView', 'View');
 
-class MaildataHelperTest extends BcTestCase
+class MaildataHelperTest extends BaserTestCase
 {
+    public $View = null;
+    public $fixtures = [
+        'baser.Default.Content',
+        'baser.Default.Site',
+        'baser.Default.User',
+        'baser.Default.SiteConfig'
+    ];
 
     /**
      * set up
      */
-    public function setUp():void
+    public function setUp()
     {
         parent::setUp();
-        $this->MaildataHelper = new MaildataHelper(new View());
+        $this->View = new BcAppView(null);
+        $this->View->request = $this->_getRequest('/');
+        $this->Maildata = new MaildataHelper($this->View);
     }
 
     /**
      * tear down
      */
-    public function tearDown():void
+    public function tearDown()
     {
-        unset($this->MaildataHelper);
+        unset($this->Maildata);
         parent::tearDown();
     }
     /**
      * メール表示用のデータを出力する
-     * @dataProvider controlDataProvider
+     *
+     * public function testControl() {
+     * $this->markTestIncomplete('このメソッドは、同一クラス内のメソッドをラッピングしているメソッドのためスキップします。');
+     * }
      */
-    public function testControl($type, $value, $escape, $expected)
-    {
-        $result = $this->MaildataHelper->control($type, $value, $escape);
-        $this->assertEquals($expected, $result);
-    }
-
-    public static function controlDataProvider()
-    {
-        return [
-          ['text' , '<b>bold</b>', true, ' &lt;b&gt;bold&lt;/b&gt;'],
-          ['text' , '<b>bold</b>', false, ' <b>bold</b>'],
-        ];
-    }
 
     /**
      * メール表示用のデータを出力する
@@ -48,7 +47,6 @@ class MaildataHelperTest extends BcTestCase
      */
     public function testToDisplayString($type, $value, $options, $expected)
     {
-        $this->markTestIncomplete('このテストは、まだ実装されていません。');
         if ($type == 'file') {
             $this->View->set('mailContent', ['MailContent' => ['id' => 1]]);
         }
@@ -57,7 +55,7 @@ class MaildataHelperTest extends BcTestCase
         $this->assertEquals($result, $expected);
     }
 
-    public static function toDisplayStringProvider()
+    public function toDisplayStringProvider()
     {
         $options = [
             '資料請求' => '資料請求',

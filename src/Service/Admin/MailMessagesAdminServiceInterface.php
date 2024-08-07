@@ -14,7 +14,6 @@ namespace BcMail\Service\Admin;
 use BaserCore\Annotation\NoTodo;
 use BaserCore\Annotation\Checked;
 use BaserCore\Annotation\UnitTest;
-use Cake\Datasource\Paging\PaginatedResultSet;
 use Cake\ORM\ResultSet;
 
 /**
@@ -32,6 +31,6 @@ interface MailMessagesAdminServiceInterface
      * @checked
      * @noTodo
      */
-    public function getViewVarsForIndex(int $mailContentId, PaginatedResultSet $mailMessages): array;
+    public function getViewVarsForIndex(int $mailContentId, ResultSet $mailMessages): array;
 
 }
