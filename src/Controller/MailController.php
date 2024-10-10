@@ -232,10 +232,7 @@ class MailController extends MailFrontAppController
     /**
      * [PUBIC] データ送信
      *
-     * @param MailFrontServiceInterface|MailFrontService $service
-     * @param MailContentsServiceInterface $mailContentsService
-     * @param MailMessagesServiceInterface|MailMessagesService $mailMessagesService
-     * @param BcCaptchaServiceInterface $bcCaptchaService
+     * @param mixed mail_content_id
      * @return void|Response
      * @checked
      * @noTodo
