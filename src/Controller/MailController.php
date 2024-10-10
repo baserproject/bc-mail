@@ -179,16 +179,13 @@ class MailController extends MailFrontAppController
     {
         $mailContent = $mailContentsService->get($this->request->getParam('entityId'));
         if (!$service->isAccepting($mailContent)) {
-            return $this->render($service->getUnpublishTemplate($mailContent));
+            $this->render($service->getUnpublishTemplate($mailContent));
+            return;
         }
 
-        if (!$this->getRequest()->is(['post', 'put'])) {
-            return $this->redirect(['action' => 'index']);
-        }
-
-        if (!$this->getRequest()->getSession()->read('BcMail.valid')) {
+        if (!$this->getRequest()->getSession()->read('BcMail.valid') || !$this->getRequest()->is(['post', 'put'])) {
             $this->BcMessage->setError(__d('baser_core', 'エラーが発生しました。もう一度操作してください。'));
-            return $this->redirect(['action' => 'index']);
+            $this->redirect($this->request->getParam('Content.url') . '/index');
         }
 
         try {
@@ -213,8 +210,6 @@ class MailController extends MailFrontAppController
         } catch (PersistenceFailedException $e) {
             $mailMessage = $e->getEntity();
             $this->BcMessage->setError($e->getMessage());
-            $this->set($service->getViewVarsForIndex($mailContent, $mailMessage));
-            return $this->render($service->getIndexTemplate($mailContent));
         } catch (BcException $e) {
             $this->BcMessage->setError($e->getMessage());
             if ($e->getCode() === 500) {
@@ -242,16 +237,12 @@ class MailController extends MailFrontAppController
     {
         $mailContent = $mailContentsService->get($this->request->getParam('entityId'));
         if (!$service->isAccepting($mailContent)) {
-            return $this->render($service->getUnpublishTemplate($mailContent));
+            $this->render($service->getUnpublishTemplate($mailContent));
+            return;
         }
-
-        if (!$this->getRequest()->is(['post', 'put'])) {
-            return $this->redirect(['action' => 'index']);
-        }
-
-        if (!$this->getRequest()->getSession()->read('BcMail.valid')) {
+        if (!$this->getRequest()->getSession()->read('BcMail.valid') || !$this->getRequest()->is(['post', 'put'])) {
             $this->BcMessage->setError(__d('baser_core', 'エラーが発生しました。もう一度操作してください。'));
-            return $this->redirect(['action' => 'index']);
+            $this->redirect($this->request->getParam('Content.url') . '/index');
         }
 
         if($this->getRequest()->getData('mode') === 'Back') {
@@ -260,7 +251,8 @@ class MailController extends MailFrontAppController
                 $mailContent,
                 new MailMessage($this->getRequest()->getData(), ['source' => 'BcMail.MailMessages'])
             ));
-            return $this->render($service->getIndexTemplate($mailContent));
+            $this->render($service->getIndexTemplate($mailContent));
+            return;
         }
 
         // メッセージ保存
@@ -283,10 +275,11 @@ class MailController extends MailFrontAppController
             $mailMessage->auth_captcha = '';
             $this->BcMessage->setError(__d('baser_core', '入力内容を確認し、再度送信してください。'));
             $this->set($service->getViewVarsForConfirm($mailContent, $entity));
-            return $this->render($service->getConfirmTemplate($mailContent));
+            $this->render($service->getConfirmTemplate($mailContent));
+            return;
         } catch (\Throwable $e) {
             $this->BcMessage->setError(__d('baser_core', 'エラー : 送信中にエラーが発生しました。しばらくたってから再度送信お願いします。') . $e->getMessage());
-            return $this->redirect($this->request->getAttribute('currentContent')->url . '/');
+            return $this->redirect($this->request->getAttribute('currentContent')->url . '/index');
         }
 
         // EVENT Mail.beforeSendEmail
@@ -305,7 +298,7 @@ class MailController extends MailFrontAppController
             $this->getRequest()->getSession()->delete('BcMail.valid');
         } catch (\Throwable $e) {
             $this->BcMessage->setError(__d('baser_core', 'エラー : 送信中にエラーが発生しました。しばらくたってから再度送信お願いします。') . $e->getMessage());
-            return $this->redirect($this->request->getAttribute('currentContent')->url . '/');
+            return $this->redirect($this->request->getAttribute('currentContent')->url . '/index');
         }
 
         // EVENT Mail.afterSendEmail
@@ -326,7 +319,8 @@ class MailController extends MailFrontAppController
     {
         $mailContent = $mailContentsService->get($this->request->getParam('entityId'));
         if (!$service->isAccepting($mailContent)) {
-            return $this->render($service->getUnpublishTemplate($mailContent));
+            $this->render($service->getUnpublishTemplate($mailContent));
+            return;
         }
 
         $mailContent = $this->getRequest()->getSession()->consume('BcMail.MailContent');

@@ -54,8 +54,7 @@ class MailMessagesController extends MailAdminAppController
      */
     public function beforeFilter(EventInterface $event)
     {
-        $response = parent::beforeFilter($event);
-        if($response) return $response;
+        parent::beforeFilter($event);
         $mailContentId = $this->request->getParam('pass.0');
         if (!$mailContentId) throw new BcException(__d('baser_core', '不正なURLです。'));
         /* @var ContentsService $contentsService */
