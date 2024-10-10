@@ -38,7 +38,6 @@ class MailFieldsController extends BcAdminApiController
      * @param MailFieldsService $service
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function batch(MailFieldsServiceInterface $service)
     {
@@ -81,7 +80,6 @@ class MailFieldsController extends BcAdminApiController
      * @return bool|void
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function update_sort(MailFieldsServiceInterface $service, int $mailContentId)
     {

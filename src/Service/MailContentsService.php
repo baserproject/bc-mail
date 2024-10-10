@@ -52,7 +52,6 @@ class MailContentsService implements MailContentsServiceInterface
      * @return EntityInterface
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function getNew()
     {
@@ -79,7 +78,6 @@ class MailContentsService implements MailContentsServiceInterface
      * @throws \Cake\ORM\Exception\PersistenceFailedException
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function create(array $postData, $options = []): ?EntityInterface
     {
@@ -110,7 +108,6 @@ class MailContentsService implements MailContentsServiceInterface
      * @return EntityInterface|null
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function update(EntityInterface $entity, array $postData): ?EntityInterface
     {
@@ -132,7 +129,6 @@ class MailContentsService implements MailContentsServiceInterface
      * @return bool
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function delete(int $id): bool
     {
@@ -157,7 +153,6 @@ class MailContentsService implements MailContentsServiceInterface
      * @return EntityInterface
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function get(int $id, array $options = [])
     {

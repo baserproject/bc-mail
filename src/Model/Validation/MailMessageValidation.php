@@ -12,7 +12,6 @@
 namespace BcMail\Model\Validation;
 
 use Cake\Validation\Validation;
-use BaserCore\Utility\BcUtil;
 use BaserCore\Annotation\UnitTest;
 use BaserCore\Annotation\NoTodo;
 use BaserCore\Annotation\Checked;
@@ -47,7 +46,6 @@ class MailMessageValidation extends Validation
      * @return bool
      * @unitTest
      * @noTodo
-     * @checked
      */
     public static function dateArray($value)
     {
@@ -68,7 +66,6 @@ class MailMessageValidation extends Validation
      * @return bool
      * @unitTest
      * @noTodo
-     * @checked
      */
     public static function checkdate($value){
 		if (!$value) return true;
@@ -80,9 +77,9 @@ class MailMessageValidation extends Validation
 		}
 		if (DS != '\\') {
 			if ($time) {
-                if (!date_parse_from_format($value, '%Y-%m-%d %H:%M')) return false;
+				if (!strptime($value, '%Y-%m-%d %H:%M')) return false;
 			} else {
-                if (!date_parse_from_format($value, '%Y-%m-%d')) return false;
+				if (!strptime($value, '%Y-%m-%d')) return false;
 			}
 		}
 		[$Y, $m, $d] = explode('-', $date);
@@ -90,7 +87,7 @@ class MailMessageValidation extends Validation
 		if ($time) {
 			if (strpos($value, ':') !== false) {
 				[$H, $i] = explode(':', $time);
-                if (BcUtil::checkTime($H, $i) !== true) return false;
+				if (checktime($H, $i) !== true) return false;
 			} else {
 				return false;
 			}
@@ -106,7 +103,6 @@ class MailMessageValidation extends Validation
      * @param string $target
      * @param array $context
      * @return bool
-     * @checked
      */
     public static function checkSame(string $value, string $target, array $context)
     {
