@@ -115,8 +115,6 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @param array|MailMessage $postData
      * @return EntityInterface
      * @unitTest
-     * @checked
-     * @noTodo
      */
     public function create(EntityInterface $mailContent, $postData)
     {
@@ -144,8 +142,6 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @param EntityInterface $entity
      * @param array $postData
      * @return EntityInterface|null
-     * @checked
-     * @noTodo
      */
     public function update(EntityInterface $entity, array $postData): ?EntityInterface
     {

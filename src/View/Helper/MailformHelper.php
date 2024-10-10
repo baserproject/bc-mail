@@ -238,8 +238,6 @@ class MailformHelper extends BcFreezeHelper
      * @param array $model
      * @param array $options
      * @return string
-     * @checked
-     * @noTodo
      */
     public function create($context = null, $options = []): string
     {
@@ -259,9 +257,6 @@ class MailformHelper extends BcFreezeHelper
      * @param array $options オプション（初期値 : []）
      *    - `separate` : 画像と入力欄の区切り（初期値：''）
      *    - `class` : CSSクラス名（初期値：auth-captcha-image）
-     * @return void
-     * @checked
-     * @noTodo
      */
     public function authCaptcha(string $fieldName, array $options = [])
     {
@@ -328,8 +323,6 @@ class MailformHelper extends BcFreezeHelper
      * @param ResultSet $mailFields
      * @param MailField $currentMailField
      * @return bool
-     * @checked
-     * @noTodo
      */
     public function isGroupLastField(ResultSet $mailFields, MailField $currentMailField)
     {

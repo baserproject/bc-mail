@@ -12,9 +12,8 @@
 namespace BcMail\View\Helper;
 
 use BaserCore\Utility\BcContainerTrait;
-use BaserCore\Utility\BcText;
 use BaserCore\Utility\BcUtil;
-use BcMail\Model\Entity\MailContent;
+use BcMail\Service\MailContentsService;
 use BcMail\Service\MailContentsServiceInterface;
 use Cake\Core\Configure;
 use Cake\Event\Event;
@@ -45,18 +44,10 @@ class MailHelper extends Helper
     public $helpers = ['BcBaser'];
 
     /**
-     * 現在のメールコンテンツ
-     * @var MailContent
-     */
-    public $currentMailContent;
-
-    /**
      * コンストラクタ
      *
      * @param View $View Viewオブジェクト
      * @return void
-     * @checked
-     * @noTodo
      */
     public function __construct(View $view, array $config = [])
     {
@@ -72,15 +63,15 @@ class MailHelper extends Helper
      */
     public function setMailContent($mailContentId = null)
     {
-        if (isset($this->currentMailContent)) {
+        if (isset($this->mailContent)) {
             return;
         }
         if ($mailContentId) {
             $MailContent = ClassRegistry::init('BcMail.MailContent');
             $MailContent->reduceAssociations([]);
-            $this->currentMailContent = Hash::extract($MailContent->read(null, $mailContentId), 'MailContent');
+            $this->mailContent = Hash::extract($MailContent->read(null, $mailContentId), 'MailContent');
         } elseif ($this->_View->get('mailContent')) {
-            $this->currentMailContent = $this->_View->get('mailContent');
+            $this->mailContent = $this->_View->get('mailContent');
         }
     }
 
@@ -155,38 +146,33 @@ class MailHelper extends Helper
     /**
      * メールフォームの説明文を取得する
      * @return string メールフォームの説明文
-     * @checked
-     * @noTodo
      */
     public function getDescription()
     {
-        return $this->currentMailContent->description;
+        return $this->mailContent['description'];
     }
 
     /**
      * メールの説明文を出力する
      *
      * @return void
-     * @checked
-     * @noTodo
      */
     public function description()
     {
-        echo BcText::stripScriptTag($this->getDescription());
+        echo $this->getDescription();
     }
 
     /**
      * メールの説明文が設定されているかどうかを判定する
      *
      * @return boolean 設定されている場合 true を返す
-     * @checked
-     * @noTodo
      */
     public function descriptionExists()
     {
-        if (empty($this->currentMailContent->description)) {
+        if (empty($this->mailContent['description'])) {
             return false;
         }
+
         return true;
     }
 
@@ -199,8 +185,6 @@ class MailHelper extends Helper
      * @param array $options a タグの属性（初期値 : array()）
      *    ※ オプションについては、HtmlHelper::link() を参照
      * @return void
-     * @checked
-     * @noTodo
      */
     public function link($title, $contentsName, $datas = [], $options = [])
     {
@@ -217,8 +201,6 @@ class MailHelper extends Helper
      * ブラウザの戻るボタン対応コードを作成
      *
      * @return string
-     * @checked
-     * @noTodo
      */
     public function getToken()
     {
@@ -229,8 +211,6 @@ class MailHelper extends Helper
      * ブラウザの戻るボタン対応コードを出力
      *
      * @return void
-     * @checked
-     * @noTodo
      */
     public function token()
     {
@@ -265,7 +245,6 @@ class MailHelper extends Helper
      *
      * @param Event $event
      * @param string $viewFile
-     * @checked
      */
     public function beforeRender(Event $event, string $viewFile)
     {
@@ -286,8 +265,6 @@ class MailHelper extends Helper
      * 現在のページがメールプラグインかどうかを判定する
      *
      * @return bool
-     * @checked
-     * @noTodo
      */
     public function isMail(): bool
     {
@@ -301,8 +278,6 @@ class MailHelper extends Helper
      *
      * @param int $siteId
      * @return mixed
-     * @checked
-     * @noTodo
      */
     public function getPublishedMailContents(int $siteId)
     {

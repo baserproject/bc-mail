@@ -27,7 +27,6 @@ class MailMessageValidation extends Validation
      * 文字列日付チェック
      *
      * @return bool
-     * @checked
      * @unitTest
      * @noTodo
      */

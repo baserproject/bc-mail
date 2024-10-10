@@ -51,8 +51,6 @@ class MailFieldsController extends MailAdminAppController
      * beforeFilter
      *
      * @return void
-     * @checked
-     * @noTodo
      */
     public function beforeFilter(EventInterface $event)
     {
@@ -75,8 +73,6 @@ class MailFieldsController extends MailAdminAppController
 
     /**
      * プラグインの環境をチェックする
-     * @checked
-     * @noTodo
      */
     protected function _checkEnv()
     {

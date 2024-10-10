@@ -20,6 +20,8 @@ use BaserCore\Annotation\Checked;
 
 /**
  * メールフィールドヘルパー
+ *
+ *
  */
 class MailfieldHelper extends Helper
 {
@@ -29,8 +31,6 @@ class MailfieldHelper extends Helper
      *
      * @param array $data メールフィールドデータ
      * @return array HTML属性
-     * @checked
-     * @noTodo
      */
     public function getAttributes($data)
     {
@@ -65,8 +65,6 @@ class MailfieldHelper extends Helper
      *
      * @param MailField $data メールフィールドデータ
      * @return array コントロールソース
-     * @checked
-     * @noTodo
      */
     public function getOptions($data)
     {

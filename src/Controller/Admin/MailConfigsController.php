@@ -11,14 +11,12 @@
 
 namespace BcMail\Controller\Admin;
 
+use BaserCore\Utility\BcUtil;
 use BcMail\Service\MailConfigsServiceInterface;
-use Psr\Http\Message\ResponseInterface;
-use BaserCore\Annotation\UnitTest;
-use BaserCore\Annotation\NoTodo;
-use BaserCore\Annotation\Checked;
 
 /**
  * メールフォーム設定コントローラー
+ *
  */
 class MailConfigsController extends MailAdminAppController
 {
@@ -26,9 +24,7 @@ class MailConfigsController extends MailAdminAppController
     /**
      * [ADMIN] メールフォーム設定
      *
-     * @return void|ResponseInterface
-     * @checked
-     * @noTodo
+     * @return void
      */
     public function index(MailConfigsServiceInterface $service)
     {
