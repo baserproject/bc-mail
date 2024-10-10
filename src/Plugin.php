@@ -22,7 +22,7 @@ use BaserCore\Annotation\Checked;
 /**
  * plugin for BcMail
  */
-class BcMailPlugin extends BcPlugin
+class Plugin extends BcPlugin
 {
 
     /**
