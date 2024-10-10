@@ -38,7 +38,6 @@ class MailMessagesController extends MailAdminAppController
      * @return void
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function initialize(): void
     {

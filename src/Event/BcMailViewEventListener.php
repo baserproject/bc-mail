@@ -56,7 +56,7 @@ class BcMailViewEventListener extends \BaserCore\Event\BcViewEventListener
         $table = \Cake\ORM\TableRegistry::getTableLocator()->get('BcMail.MailContents');
         $entities = $table->find()
             ->contain('Contents')
-            ->orderBy(['MailContents.id'])
+            ->order(['MailContents.id'])
             ->all();
         $contentMenus = [];
         foreach($entities as $entity) {

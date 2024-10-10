@@ -54,7 +54,6 @@ class MailFieldsTable extends MailAppTable
      * @return Validator
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function validationDefault(Validator $validator): Validator
     {
@@ -73,7 +72,7 @@ class MailFieldsTable extends MailAppTable
                 'halfTextMailField' => [
                     'rule' => 'halfTextMailField',
                     'provider' => 'table',
-                    'message' => __d('baser_core', 'フィールド名は小文字の半角英数字、アンダースコアのみで入力してください。')
+                    'message' => __d('baser_core', 'フィールド名は半角英数字のみで入力してください。')
                 ]])
             ->add('field_name', [
                 'duplicateMailField' => [
@@ -109,31 +108,19 @@ class MailFieldsTable extends MailAppTable
             ->maxLength('options', 255, __d('baser_core', 'オプションは255文字以内で入力してください。'));
         $validator
             ->scalar('class')
-            ->maxLength('class', 255, __d('baser_core', 'クラス名は255文字以内で入力してください。'));
+            ->maxLength('class', 255, __d('baser_core', 'クラス名255文字以内で入力してください。'));
         $validator
             ->scalar('default_value')
             ->maxLength('default_value', 255, __d('baser_core', '初期値は255文字以内で入力してください。'));
         $validator
             ->scalar('description')
-            ->maxLength('description', 255, __d('baser_core', '説明文は255文字以内で入力してください。'));
+            ->maxLength('options', 255, __d('baser_core', '説明文は255文字以内で入力してください。'));
         $validator
             ->scalar('group_field')
-            ->maxLength('group_field', 255, __d('baser_core', 'グループ名は255文字以内で入力してください。'))
-            ->add('group_field', [
-                'halfTextMailField' => [
-                    'rule' => 'halfTextMailField',
-                    'provider' => 'table',
-                    'message' => __d('baser_core', 'グループ名は半角英数字、ハイフン、アンダースコアで入力してください。')
-                ]]);
+            ->maxLength('group_field', 255, __d('baser_core', 'グループフィールドは255文字以内で入力してください。'));
         $validator
             ->scalar('group_valid')
-            ->maxLength('group_valid', 255, __d('baser_core', 'グループ入力チェックは255文字以内で入力してください。'))
-            ->add('group_valid', [
-                'halfTextMailField' => [
-                    'rule' => 'halfTextMailField',
-                    'provider' => 'table',
-                    'message' => __d('baser_core', 'グループ入力チェックは半角英数字、ハイフン、アンダースコアで入力してください。')
-                ]]);
+            ->maxLength('group_valid', 255, __d('baser_core', 'グループ入力チェックは255文字以内で入力してください。'));
         $validator
             ->scalar('size')
             ->allowEmptyString('size')
@@ -225,19 +212,16 @@ class MailFieldsTable extends MailAppTable
 
     /**
      * メールフィールドの値として正しい文字列か検証する
-     * 半角小文字英数-_
-     * メールフィールドは、DBテーブルのフィールドとして利用されるため、
-     * 大文字を利用した場合にクォートを入れないとエラーとなってしまう
+     * 半角英数-_
      *
      * @param string $value
      * @return boolean
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function halfTextMailField(string $value)
     {
-        $pattern = "/^[a-z0-9_]*$/";
+        $pattern = "/^[a-zA-Z0-9-_]*$/";
         return !!(preg_match($pattern, $value) === 1);
     }
 
@@ -249,7 +233,6 @@ class MailFieldsTable extends MailAppTable
      * @return bool
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function sourceMailField(string $value, array $context)
     {
@@ -332,7 +315,6 @@ class MailFieldsTable extends MailAppTable
      * @return string 整形後選択リストソース
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function formatSource($source)
     {

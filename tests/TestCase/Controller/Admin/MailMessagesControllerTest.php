@@ -12,7 +12,6 @@
 namespace BcMail\Test\TestCase\Controller\Admin;
 
 use BaserCore\TestSuite\BcTestCase;
-use BcMail\Controller\Admin\MailMessagesController;
 
 class MailMessagesControllerTest extends BcTestCase
 {
@@ -25,7 +24,6 @@ class MailMessagesControllerTest extends BcTestCase
     public function setUp(): void
     {
         parent::setUp();
-        $this->MailMessagesController = new MailMessagesController($this->getRequest());
     }
 
     /**
@@ -36,16 +34,6 @@ class MailMessagesControllerTest extends BcTestCase
     public function tearDown(): void
     {
         parent::tearDown();
-    }
-
-    /**
-     * initialize
-     */
-
-    public function testInitialize()
-    {
-        $this->assertNotEmpty($this->MailMessagesController->BcAdminContents);
-
     }
 
     /**

@@ -22,7 +22,6 @@ use BaserCore\Annotation\UnitTest;
  *
  * BcBaserHelper より透過的に呼び出されるヘルパー
  */
-#[\AllowDynamicProperties]
 class BcMailBaserHelper extends Helper implements BcPluginBaserHelperInterface
 {
 
@@ -30,7 +29,7 @@ class BcMailBaserHelper extends Helper implements BcPluginBaserHelperInterface
      * ヘルパー
      * @var array
      */
-    public array $helpers = [
+    public $helpers = [
         'BcMail.Mail',
         'BcMail.Mailform'
     ];
@@ -41,7 +40,6 @@ class BcMailBaserHelper extends Helper implements BcPluginBaserHelperInterface
      * @return array[]
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function methods(): array
     {

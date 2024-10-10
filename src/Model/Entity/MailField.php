@@ -46,8 +46,8 @@ use BaserCore\Annotation\Checked;
  * @property bool $use_field
  * @property bool $no_send
  * @property int $sort
- * @property \Cake\I18n\DateTime $created
- * @property \Cake\I18n\DateTime $modified
+ * @property FrozenTime $created
+ * @property FrozenTime $modified
  */
 class MailField extends Entity
 {
@@ -57,7 +57,7 @@ class MailField extends Entity
      *
      * @var array
      */
-    protected array $_accessible = [
+    protected $_accessible = [
         '*' => true,
         'id' => false
     ];

@@ -174,7 +174,7 @@ class MailContentsService implements MailContentsServiceInterface
                 'MailFields'
             ]
         ], $options);
-        return $this->MailContents->get($id, contain: $options['contain']);
+        return $this->MailContents->get($id, ['contain' => $options['contain']]);
     }
 
     /**
@@ -231,10 +231,10 @@ class MailContentsService implements MailContentsServiceInterface
      */
     public function getList()
     {
-        return $this->MailContents->find('list',
-            keyField: 'id',
-            valueField: 'content.title'
-        )->contain(['Contents'])->toArray();
+        return $this->MailContents->find('list', [
+            'keyField' => 'id',
+            'valueField' => 'content.title'
+        ])->contain(['Contents'])->toArray();
     }
 
     /**

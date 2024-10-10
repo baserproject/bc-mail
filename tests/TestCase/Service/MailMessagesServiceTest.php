@@ -309,7 +309,7 @@ class MailMessagesServiceTest extends BcTestCase
         $this->assertEquals('https://book.cakephp.org', $result->field1);
     }
 
-    public static function getNewDataProvider()
+    public function getNewDataProvider()
     {
         return [
             [null],
@@ -442,7 +442,7 @@ class MailMessagesServiceTest extends BcTestCase
     }
 
 
-    public static function autoConvertDataProvider()
+    public function autoConvertDataProvider()
     {
         return [
             ['CONVERT_HANKAKU', '１２３ａｂｃ', '123abc', '半角変換が正しく処理されていません'],
