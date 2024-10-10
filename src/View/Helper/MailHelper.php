@@ -19,8 +19,6 @@ use BcMail\Service\MailContentsServiceInterface;
 use Cake\Core\Configure;
 use Cake\Event\Event;
 use Cake\Filesystem\Folder;
-use Cake\ORM\TableRegistry;
-use Cake\Routing\Router;
 use Cake\View\Helper;
 use Cake\View\View;
 use BaserCore\Annotation\UnitTest;
@@ -44,7 +42,7 @@ class MailHelper extends Helper
      * ヘルパー
      * @var array
      */
-    public $helpers = ['BcBaser', 'BcContents'];
+    public $helpers = ['BcBaser'];
 
     /**
      * 現在のメールコンテンツ
@@ -174,7 +172,7 @@ class MailHelper extends Helper
      */
     public function description()
     {
-        echo $this->getDescription();
+        echo BcText::stripScriptTag($this->getDescription());
     }
 
     /**
@@ -247,28 +245,19 @@ class MailHelper extends Helper
      */
     public function getForm($id = null)
     {
-        $mailContentsTable = TableRegistry::getTableLocator()->get('BcMail.MailContents');
-        $conditions = ($id)? ['MailContents.id' => $id] : [];
-        $mailContent = $mailContentsTable->find('accepting')
-            ->where($conditions)
-            ->contain(['Contents'])
-            ->first();
-        if (!$mailContent) return false;
-        $url = $this->BcContents->getUrl($mailContent->content->url);
-        $currentRequest = $this->getView()->getRequest();
-
-        // メールフォーム用のリクエストを作成
-        $request = BcUtil::createRequest($url, [], 'GET', ['session' => $currentRequest->getSession()]);
-        $request = $request->withAttribute('formTokenData', $currentRequest->getAttribute('formTokenData'));
-        $request = $request->withAttribute('csrfToken', $currentRequest->getAttribute('csrfToken'));
-        $this->getView()->setRequest($request);
-
-        $result = $this->getView()->cell('BcMail.Mail', [$request]);
-
-        // リクエストを元に戻す
-        $this->getView()->setRequest($currentRequest);
-        Router::setRequest($currentRequest);
-        return $result;
+        $MailContent = ClassRegistry::init('BcMail.MailContent');
+        $conditions = [];
+        if ($id) {
+            $conditions = [
+                'MailContent.id' => $id
+            ];
+        }
+        $mailContent = $MailContent->findPublished('first', ['conditions' => $conditions]);
+        if (!$mailContent) {
+            return false;
+        }
+        $url = $mailContent['Content']['url'];
+        return $this->requestAction($url, ['return' => true]);
     }
 
     /**

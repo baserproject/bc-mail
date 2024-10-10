@@ -120,13 +120,14 @@ class MailMessagesService implements MailMessagesServiceInterface
      */
     public function create(EntityInterface $mailContent, $postData)
     {
-        $entity = $this->MailMessages->newEntity($postData);
-        foreach ($postData as $postKey => $postValue) {
-            if (is_array($postValue)) {
-                $entity->$postKey = $postValue;
-            }
+        if (!$postData instanceof EntityInterface) {
+            // newEntity() だと配列が消えてしまうため、エンティティクラスで直接変換
+            $entity = new MailMessage($postData, ['source' => 'BcMail.MailMessages']);
+        } else {
+            $entity = $postData;
         }
-        if (!$entity->getErrors()) {
+        $validateEntity = $this->MailMessages->patchEntity($this->MailMessages->newEmptyEntity(), $entity->toArray());
+        if (!$validateEntity->getErrors()) {
             $mailFieldsTable = TableRegistry::getTableLocator()->get('BcMail.MailFields');
             $mailFields = $mailFieldsTable->find()->where(['MailFields.mail_content_id' => $mailContent->id, 'MailFields.use_field' => true])->all();
             $this->MailMessages->convertToDb($mailFields, $entity);
@@ -336,35 +337,6 @@ class MailMessagesService implements MailMessagesServiceInterface
             }
         }
         return true;
-    }
-
-    /**
-     * 全てのメール受信テーブルの再構築を行う
-     * @return bool
-     */
-    public function reconstructionAll(): bool
-    {
-        $mailContentsTable = TableRegistry::getTableLocator()->get('BcMail.MailContents');
-        $mailContents = $mailContentsTable->find()->all();
-        $mailContentsTable->getConnection()->begin();
-        $result = true;
-        foreach($mailContents as $mailContent) {
-            if ($this->createTable($mailContent->id)) {
-                if (!$this->construction($mailContent->id)) {
-                    $result = false;
-                    break;
-                }
-            } else {
-                $result = false;
-                break;
-            }
-        }
-        if($result) {
-            $mailContentsTable->getConnection()->commit();
-        } else {
-            $mailContentsTable->getConnection()->rollback();
-        }
-        return $result;
     }
 
     /**
