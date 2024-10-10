@@ -11,6 +11,7 @@
 
 namespace BcMail\Model\Table;
 
+use BaserCore\Event\BcEventDispatcherTrait;
 use Cake\Datasource\EntityInterface;
 use Cake\Validation\Validator;
 use BaserCore\Annotation\UnitTest;
@@ -24,12 +25,17 @@ use BaserCore\Annotation\Checked;
  */
 class MailFieldsTable extends MailAppTable
 {
+
+    /**
+     * Trait
+     */
+    use BcEventDispatcherTrait;
+
     /**
      * Initialize method
      *
      * @param array $config The configuration for the Table.
      * @return void
-     * @noTodo
      * @checked
      * @unitTest
      */

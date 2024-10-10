@@ -35,7 +35,6 @@ class MailMessagesAdminService extends MailMessagesService implements MailMessag
      * @return array
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function getViewVarsForIndex(int $mailContentId, ResultSet $mailMessages): array
     {
@@ -58,7 +57,6 @@ class MailMessagesAdminService extends MailMessagesService implements MailMessag
      * @return array
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function getViewVarsForView(int $mailContentId, int $mailMessageId)
     {
@@ -79,14 +77,13 @@ class MailMessagesAdminService extends MailMessagesService implements MailMessag
      * @param int $mailContentId
      * @param ServerRequest $request
      * @return array
-     * @unitTest
      */
     public function getViewVarsForDownloadCsv(int $mailContentId, ServerRequest $request)
     {
         $this->setup($mailContentId);
         return [
-            'encoding' => $request->getQuery('encoding') ?? 'utf-8',
-            'messages' => $this->MailMessages->convertMessageToCsv($this->getIndex()->all()),
+            'encoding' => $request->getQuery('encoding')?? 'utf-8',
+            'messages' => $this->MailMessages->convertMessageToCsv($this->getIndex()),
             'contentName' => $request->getAttribute('currentContent')->name,
         ];
     }

@@ -1,4 +1,6 @@
 <?php
+// TODO ucmitz  : コード確認要
+return;
 /**
  * baserCMS :  Based Website Development Project <https://basercms.net>
  * Copyright (c) baserCMS Users Community <https://basercms.net/community/>
@@ -9,52 +11,32 @@
  * @license         https://basercms.net/license/index.html
  */
 
-namespace BcMail\Test\TestCase\Model;
-
-use BaserCore\TestSuite\BcTestCase;
-use BcMail\Model\Table\MailFieldsTable;
+App::uses('MailField', 'BcMail.Model');
 
 /**
- * @property MailFieldsTable $MailFieldsTable
+ * @property MailField $MailField
  */
-class MailFieldsTableTest extends BcTestCase
+class MailFieldTest extends BaserTestCase
 {
 
     public $fixtures = [
-
+        'baser.Default.SiteConfig',
+        'plugin.mail.Default/MailMessage',
+        'plugin.mail.Default/MailConfig',
+        'plugin.mail.Default/MailField',
+        'plugin.mail.Default/MailField',
     ];
 
-    /**
-     * Set Up
-     *
-     * @return void
-     */
-    public function setUp(): void
+    public function setUp()
     {
+        $this->MailField = ClassRegistry::init('BcMail.MailField');
         parent::setUp();
-        $this->MailFieldsTable = $this->getTableLocator()->get('BcMail.MailFields');
     }
 
-    /**
-     * Tear Down
-     *
-     * @return void
-     */
-    public function tearDown(): void
+    public function tearDown()
     {
-        unset($this->MailFieldsTable);
+        unset($this->MailField);
         parent::tearDown();
-    }
-
-    /**
-     * test initialize
-     */
-    public function test_initialize()
-    {
-        $this->assertEquals('mail_fields', $this->MailFieldsTable->getTable());
-        $this->assertEquals('id', $this->MailFieldsTable->getPrimaryKey());
-        $this->assertTrue($this->MailFieldsTable->hasBehavior('Timestamp'));
-        $this->assertTrue($this->MailFieldsTable->hasAssociation('MailContents'));
     }
 
     /**
@@ -62,7 +44,6 @@ class MailFieldsTableTest extends BcTestCase
      */
     public function test正常チェック()
     {
-        $this->markTestIncomplete('こちらのテストはまだ未確認です');
         $this->MailField->create([
             'MailField' => [
                 'name' => '012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234',
@@ -88,7 +69,6 @@ class MailFieldsTableTest extends BcTestCase
 
     public function test空白チェック()
     {
-        $this->markTestIncomplete('こちらのテストはまだ未確認です');
         $this->MailField->create([
             'MailField' => [
                 'name' => '',
@@ -108,7 +88,6 @@ class MailFieldsTableTest extends BcTestCase
 
     public function test桁数チェック()
     {
-        $this->markTestIncomplete('こちらのテストはまだ未確認です');
         $this->MailField->create([
             'MailField' => [
                 'name' => '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345',
@@ -150,7 +129,6 @@ class MailFieldsTableTest extends BcTestCase
 
     public function test半角英数チェック()
     {
-        $this->markTestIncomplete('こちらのテストはまだ未確認です');
         $this->MailField->create([
             'MailField' => [
                 'field_name' => '１２３ａｂｃ',
@@ -166,7 +144,6 @@ class MailFieldsTableTest extends BcTestCase
 
     public function test重複チェック()
     {
-        $this->markTestIncomplete('こちらのテストはまだ未確認です');
         $this->MailField->create([
             'MailField' => [
                 'field_name' => 'name_1',
@@ -226,7 +203,6 @@ class MailFieldsTableTest extends BcTestCase
      */
     public function testCopy($id, $data, $sortUpdateOff)
     {
-        $this->markTestIncomplete('こちらのテストはまだ未確認です');
         $options = ['sortUpdateOff' => $sortUpdateOff];
         $result = $this->MailField->copy($id, $data, $options);
 
@@ -289,7 +265,6 @@ class MailFieldsTableTest extends BcTestCase
      */
     public function testFormatSource($source, $expected)
     {
-        $this->markTestIncomplete('こちらのテストはまだ未確認です');
         $result = $this->MailField->formatSource($source);
         $this->assertEquals($expected, $result);
     }

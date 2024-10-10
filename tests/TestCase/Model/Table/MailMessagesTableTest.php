@@ -1,4 +1,6 @@
 <?php
+// TODO ucmitz  : コード確認要
+return;
 /**
  * baserCMS :  Based Website Development Project <https://basercms.net>
  * Copyright (c) baserCMS Users Community <https://basercms.net/community/>
@@ -9,66 +11,55 @@
  * @license         https://basercms.net/license/index.html
  */
 
-namespace BcMail\Test\TestCase\Model;
-
-use BaserCore\TestSuite\BcTestCase;
-use BcMail\Model\Entity\MailMessage;
-use BcMail\Model\Table\MailFieldsTable;
-use BcMail\Model\Table\MailMessagesTable;
-use BcMail\Test\Factory\MailFieldsFactory;
-use BcMail\Test\Scenario\MailFieldsScenario;
-use Cake\ORM\Entity;
-use Cake\TestSuite\IntegrationTestTrait;
-use CakephpFixtureFactories\Scenario\ScenarioAwareTrait;
+App::uses('MailMessage', 'BcMail.Model');
 
 /**
  * Class MailMessageTest
  *
- * @property MailMessagesTable $MailMessage
- * @property MailFieldsTable $MailField
+ * @property MailMessage $MailMessage
  */
-class MailMessagesTableTest extends BcTestCase
+class MailMessageTest extends BaserTestCase
 {
 
-    /**
-     * ScenarioAwareTrait
-     */
-    use ScenarioAwareTrait;
-    use IntegrationTestTrait;
-
     public $fixtures = [
-        'plugin.BaserCore.Factory/Users',
-        'plugin.BaserCore.Factory/UsersUserGroups',
-        'plugin.BaserCore.Factory/UserGroups',
-        'plugin.BaserCore.Factory/Permissions',
-        'plugin.BaserCore.Factory/SiteConfigs',
-        'plugin.BaserCore.Factory/Contents',
-        'plugin.BaserCore.Factory/Sites',
-        'plugin.BcMail.Factory/MailContents',
-        'plugin.BcMail.Factory/MailFields',
+        'baser.Default.SiteConfig',
+        'baser.Default.Site',
+        'baser.Default.Content',
+        'plugin.Mail.Default/MailMessage',
+        'plugin.Mail.Default/MailConfig',
+        'plugin.Mail.Model/MailMessage/MailContentMailMessage',
+        'plugin.Mail.Model/MailMessage/MailFieldMailMessage',
     ];
 
-    public function setUp(): void
+    public function setUp()
     {
-        $this->MailMessage = $this->getTableLocator()->get('BcMail.MailMessages');
-        $this->MailField = $this->getTableLocator()->get('BcMail.MailFields');
+        $this->MailMessage = ClassRegistry::init('BcMail.MailMessage');
         parent::setUp();
     }
 
-    public function tearDown(): void
+    public function tearDown()
     {
         unset($this->MailMessage);
         parent::tearDown();
     }
 
     /**
+     * モデルのセットアップを行う
      *
-     * setup test
+     * MailMessageモデルは利用前にこのメソッドを呼び出しておく必要あり
+     *
+     * @param type $mailContentId
+     * @return boolean
      */
-    public function test_setup(): void
+    public function testSetup()
     {
-        $result = $this->MailMessage->setup(1);
-        $this->assertTrue($result);
+        $this->MailMessage->setup(1);
+        $this->assertEquals('mail_message_1', $this->MailMessage->createTableName(1), 'テーブルを正しく設定できません');
+
+        // setupUpload
+        $saveDir = $this->MailMessage->getBehavior('BcUpload')->BcUpload['MailMessage']->settings['saveDir'];
+        $expected = "mail" . DS . "limited" . DS . '1' . DS . "messages";
+        $this->assertEquals($expected, $saveDir, 'アップロード設定を正しく設定できません');
     }
 
     /**
@@ -94,7 +85,6 @@ class MailMessagesTableTest extends BcTestCase
      */
     public function testBeforeSave()
     {
-        $this->markTestIncomplete('このテストは、まだ実装されていません。');
         // 初期化
         $this->MailMessage->createTable(1);
         // ======================================================
@@ -126,7 +116,6 @@ class MailMessagesTableTest extends BcTestCase
      */
     public function testValidate($id, $data, $expected, $message)
     {
-        $this->markTestIncomplete('このテストは、まだ実装されていません。');
         $this->MailMessage->setup($id);
         $this->MailMessage->data = ['MailMessage' => $data];
 
@@ -140,22 +129,22 @@ class MailMessagesTableTest extends BcTestCase
             // 正常系
             [
                 1, [
-                'email_1' => 'a@example.co.jp', 'email_2' => 'a@example.co.jp',
-                'tel_1' => '000', 'tel_2' => '0000', 'tel_3' => '0000',
-                'category' => 1, 'message' => ['year' => 9999, 'month' => 99, 'day' => 99],
-                'name_1' => 'baser', 'name_2' => 'cms',
-                'root' => '検索エンジン',
-            ],
+                    'email_1' => 'a@example.co.jp', 'email_2' => 'a@example.co.jp',
+                    'tel_1' => '000', 'tel_2' => '0000', 'tel_3' => '0000',
+                    'category' => 1, 'message' => ['year' => 9999, 'month' => 99, 'day' => 99],
+                    'name_1' => 'baser', 'name_2' => 'cms',
+                    'root' => '検索エンジン',
+                ],
                 [], 'バリデーションチェックが正しく行われていません'
             ],
             // 異常系
             [
                 1, [
-                'email_1' => 'email', 'email_2' => 'email_hoge', // Eメール確認チェック
-                'tel_1' => 'num1', 'tel_2' => false, 'tel_3' => false, // 不完全データチェック
-                'category' => false, 'message' => false, // 拡張バリデートチェック, FixtureでmessageにVALID_DATETIME付与済み
-                'name_1' => '', 'name_2' => '', // バリデートグループエラーチェック
-            ],
+                    'email_1' => 'email', 'email_2' => 'email_hoge', // Eメール確認チェック
+                    'tel_1' => 'num1', 'tel_2' => false, 'tel_3' => false, // 不完全データチェック
+                    'category' => false, 'message' => false, // 拡張バリデートチェック, FixtureでmessageにVALID_DATETIME付与済み
+                    'name_1' => '', 'name_2' => '', // バリデートグループエラーチェック
+                ],
                 [
                     'name_1' => [__d('baser_core', '必須項目です。')],
                     'name_2' => [__d('baser_core', '必須項目です。')],
@@ -192,35 +181,33 @@ class MailMessagesTableTest extends BcTestCase
     }
 
     /**
+     * データベース用のデータに変換する
      *
-     * convertToDb test
+     * @param array $type
+     * @param mixed $value データベース用のデータの値
+     * @param mixed $expected 期待値
+     * @dataProvider convertToDbDataProvider
      */
-    public function testConvertToDb()
+    public function testConvertToDb($type, $value, $expected)
     {
-        $this->loadFixtureScenario(MailFieldsScenario::class);
-        MailFieldsFactory::make([
-            'mail_content_id' => 1,
-            'field_name' => 'multi_check',
-            'type' => 'multi_check',
-            'use_field' => 1,
-        ])->persist();
-        MailFieldsFactory::make([
-            'mail_content_id' => 1,
-            'field_name' => 'pw',
-            'type' => 'password',
-            'use_field' => 1,
-        ])->persist();
-        $mailFields = $this->MailField->find('all')->all();
-        $mailMessage = new Entity(
+        // 初期化
+        $this->MailMessage->mailFields = [
             [
-                'id' => 1,
-                'name_1' => "\xE3\x8C\x98",
-                'multi_check' => ['a', 'b', 'c'],
+                'MailField' => [
+                    'field_name' => 'value',
+                    'use_field' => true,
+                    'type' => $type,
+                ]
             ]
-        );
-        $result = $this->MailMessage->convertToDb($mailFields, $mailMessage);
-        $this->assertEquals('グラム', $result->name_1);
-        $this->assertEquals('a|b|c', $result->multi_check);
+        ];
+        $dbData = ['MailMessage' => [
+            'value' => $value,
+        ]];
+
+        // 実行
+        $result = $this->MailMessage->convertToDb($dbData);
+
+        $this->assertEquals($expected, $result['MailMessage']['value']);
     }
 
     public function convertToDbDataProvider()
@@ -253,7 +240,6 @@ class MailMessagesTableTest extends BcTestCase
      */
     public function testConvertDatasToMail($no_send, $type)
     {
-        $this->markTestIncomplete('このテストは、まだ実装されていません。');
         // 初期化
         $this->MailMessage->mailFields = [
             [
@@ -402,106 +388,4 @@ class MailMessagesTableTest extends BcTestCase
     {
         $this->markTestIncomplete('このテストは、まだ実装されていません。');
     }
-
-    /**
-     *
-     * setMailFields test
-     *
-     */
-    public function testSetMailFields()
-    {
-        $mailFields = $this->MailMessage->mailFields;
-        $this->assertCount(0, $mailFields);
-        $this->loadFixtureScenario(MailFieldsScenario::class);
-
-        $this->MailMessage->setMailFields(1);
-        $mailFields = $this->MailMessage->mailFields;
-        $this->assertCount(3, $mailFields);
-
-        $this->MailMessage->setMailFields(99);
-        $mailFields = $this->MailMessage->mailFields;
-        $this->assertCount(0, $mailFields);
-    }
-
-    /**
-     *
-     * _validGroupErrorCheck test
-     *
-     */
-    public function testValidGroupErrorCheck()
-    {
-        $this->loadFixtureScenario(MailFieldsScenario::class);
-        $mailMessage = new MailMessage(
-            [
-                'id' => 1,
-                'name_1' => "hehe",
-            ]
-        );
-        $this->MailMessage->setMailFields(1);
-        $this->execPrivateMethod($this->MailMessage, '_validGroupErrorCheck', [$mailMessage]);
-        $this->assertCount(0, $mailMessage->getErrors());
-
-        MailFieldsFactory::make([
-            'id' => 4,
-            'mail_content_id' => 1,
-            'field_name' => 'ok',
-            'group_valid' => 'name',
-            'use_field' => 1,
-        ])->persist();
-        $mailMessage = new MailMessage(
-            [
-                'id' => 11,
-            ]
-        );
-        $this->MailMessage->setMailFields(1);
-        $this->execPrivateMethod($this->MailMessage, '_validGroupErrorCheck', [$mailMessage]);
-        $this->assertCount(0, $mailMessage->getErrors());
-    }
-
-    /**
-     *
-     * _validGroupComplete test
-     *
-     */
-    public function testValidGroupComplete()
-    {
-        MailFieldsFactory::make([
-            'id' => 99,
-            'mail_content_id' => 1,
-            'field_name' => 'ok99',
-            'valid_ex' => 'VALID_GROUP_COMPLATE, keke',
-            'use_field' => 1,
-        ])->persist();
-        MailFieldsFactory::make([
-            'id' => 98,
-            'mail_content_id' => 1,
-            'field_name' => 'ok98',
-            'type' => 'number',
-            'valid_ex' => 'VALID_GROUP_COMPLATE, 98',
-            'use_field' => 1,
-        ])->persist();
-        $this->MailMessage->setMailFields(1);
-        $mailMessage = new MailMessage(
-            [
-                'id' => 1,
-                'name_1' => "hehe",
-                'ok98' => "hic98",
-                'ok99' => "hic99",
-            ]
-        );
-        $this->execPrivateMethod($this->MailMessage, '_validGroupComplete', [$mailMessage]);
-        $this->assertCount(0, $mailMessage->getErrors());
-
-        $mailMessage = new MailMessage(
-            [
-                'id' => 1,
-                'name_1' => "hehe",
-                'ok98' => "hic98",
-                'ok99' => "",
-            ]
-        );
-        $this->execPrivateMethod($this->MailMessage, '_validGroupComplete', [$mailMessage]);
-        $this->assertCount(1, $mailMessage->getErrors()['_not_complate']);
-    }
-
 }

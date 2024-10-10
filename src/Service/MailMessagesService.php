@@ -23,7 +23,6 @@ use BcMail\Model\Entity\MailContent;
 use BcMail\Model\Entity\MailMessage;
 use BcMail\Model\Table\MailMessagesTable;
 use Cake\Datasource\EntityInterface;
-use Cake\ORM\Exception\PersistenceFailedException;
 use Cake\ORM\TableRegistry;
 
 /**
@@ -43,7 +42,6 @@ class MailMessagesService implements MailMessagesServiceInterface
      * Constructor
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function __construct()
     {
@@ -59,7 +57,6 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @param int $mailContentId
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function setup(int $mailContentId, $postData = [])
     {
@@ -73,7 +70,6 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return EntityInterface
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function get(int $id)
     {
@@ -87,7 +83,6 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return \Cake\ORM\Query
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function getIndex(array $queryParams = [])
     {
@@ -114,7 +109,6 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @param EntityInterface|MailContent $mailContent
      * @param array|MailMessage $postData
      * @return EntityInterface
-     * @unitTest
      */
     public function create(EntityInterface $mailContent, $postData)
     {
@@ -133,7 +127,7 @@ class MailMessagesService implements MailMessagesServiceInterface
                 return $this->MailMessages->saveOrFail($entity);
             }
         }
-        throw new PersistenceFailedException($validateEntity, __d('baser_core', '入力エラーです。内容を見直してください。'));
+        return $entity;
     }
 
     /**
@@ -159,7 +153,6 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return bool
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function delete(int $id): bool
     {
@@ -174,7 +167,6 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return bool
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function batch(string $method, array $ids): bool
     {
@@ -199,7 +191,6 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return bool
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function addMessageField(int $mailContentId, string $fieldName): bool
     {
@@ -214,7 +205,6 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return string
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function createTableName(int $mailContentId)
     {
@@ -232,7 +222,6 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return boolean
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function createTable(int $mailContentId)
     {
@@ -254,7 +243,6 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return boolean
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function dropTable(int $mailContentId)
     {
@@ -273,7 +261,6 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return array|bool
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function deleteMessageField(int $mailContentId, string $field)
     {
@@ -290,7 +277,6 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return array|bool
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function renameMessageField(int $mailContentId, string $oldFieldName, string $newfieldName)
     {
@@ -308,7 +294,6 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return boolean
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function construction(int $mailContentId): bool
     {
@@ -343,7 +328,6 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return EntityInterface
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function getNew(int $mailContentId, array $params): EntityInterface
     {
@@ -366,7 +350,7 @@ class MailMessagesService implements MailMessagesServiceInterface
 
         if ($params) {
             foreach($params as $key => $value) {
-                $messageArray[$key] = h(BcUtil::base64UrlSafeDecode($value));
+                $messageArray[$key] = h(base64UrlsafeDecode($value));
             }
         }
         return $this->MailMessages->newEntity($messageArray, ['validate' => false]);
@@ -381,7 +365,6 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return array $data
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function autoConvert(int $mailContentId, array $data): array
     {

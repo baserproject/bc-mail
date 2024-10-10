@@ -81,7 +81,6 @@ class MailMessagesTable extends MailAppTable
      * @return boolean
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function setup(int $mailContentId, array $postData = [])
     {
@@ -103,7 +102,6 @@ class MailMessagesTable extends MailAppTable
      * @param int $mailContentId
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function setMailFields(int $mailContentId)
     {
@@ -205,6 +203,7 @@ class MailMessagesTable extends MailAppTable
      */
     protected function setupValidate(array $postData)
     {
+        if (!$postData) return;
         $validator = new $this->_validatorClass();
         $validator->setProvider('mailMessage', 'BcMail\Model\Validation\MailMessageValidation');
         $validator->setProvider('bc', 'BaserCore\Model\Validation\BcValidation');
@@ -391,7 +390,6 @@ class MailMessagesTable extends MailAppTable
      * @return void
      * @checked
      * @noTodo
-     * @unitTest
      */
     protected function _validGroupErrorCheck(EntityInterface $entity)
     {
@@ -422,7 +420,6 @@ class MailMessagesTable extends MailAppTable
      * @return void
      * @checked
      * @noTodo
-     * @unitTest
      */
     protected function _validGroupComplete(EntityInterface $entity)
     {
@@ -464,7 +461,6 @@ class MailMessagesTable extends MailAppTable
      * @return EntityInterface
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function convertToDb(ResultSetInterface $mailFields, EntityInterface $mailMessage)
     {
