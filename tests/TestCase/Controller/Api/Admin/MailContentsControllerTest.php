@@ -14,11 +14,9 @@ namespace BcMail\Test\TestCase\Controller\Api\Admin;
 use BaserCore\Test\Factory\ContentFactory;
 use BaserCore\Test\Scenario\InitAppScenario;
 use BaserCore\TestSuite\BcTestCase;
-use BcMail\Service\MailMessagesServiceInterface;
 use BcMail\Test\Scenario\MailContentsScenario;
 use BcMail\Service\MailContentsServiceInterface;
 use BcMail\Test\Factory\MailContentFactory;
-use BcMail\Test\Scenario\MailFieldsScenario;
 use Cake\TestSuite\IntegrationTestTrait;
 use CakephpFixtureFactories\Scenario\ScenarioAwareTrait;
 
@@ -61,8 +59,17 @@ class MailContentsControllerTest extends BcTestCase
     public function testView()
     {
         //データを生成
-        $this->loadFixtureScenario(MailFieldsScenario::class);
-        $this->loadFixtureScenario(MailContentsScenario::class);
+        MailContentFactory::make([
+            'id' => 1,
+            'description' => 'description test',
+            'sender_name' => 'baserCMSサンプル',
+            'subject_user' => '【baserCMS】お問い合わせ頂きありがとうございます。',
+            'subject_admin' => '【baserCMS】お問い合わせを受け付けました',
+            'form_template' => 'default',
+            'mail_template' => 'mail_default',
+            'redirect_url' => '/',
+        ])->persist();
+
         //APIを呼ぶ
         $this->get("/baser/api/admin/bc-mail/mail_contents/view/1.json?token=" . $this->accessToken);
         // レスポンスコードを確認する
@@ -95,12 +102,9 @@ class MailContentsControllerTest extends BcTestCase
      */
     public function testAdd()
     {
-        //メールのコンテンツサービスをコル
-        $this->loadFixtureScenario(MailContentsScenario::class);
-        //Postデータを準備
         $data = [
             'content' => [
-                'name' => 'test_new',
+                'name' => 'コンテンツ名',
                 'title' => 'add mail content',
                 'site_id' => 1,
                 'parent_id' => 1
@@ -115,7 +119,7 @@ class MailContentsControllerTest extends BcTestCase
         // 戻るメッセージを確認
         $this->assertEquals($result->message, 'メールフォーム「add mail content」を追加しました。');
         // コンテンツのタイトルが変更できるか確認すること
-        $this->assertEquals($result->content->name, 'test_new');
+        $this->assertEquals($result->content->name, 'コンテンツ名');
 
         //コンテンツがない場合はエラーを返す
         //APIを呼ぶ
@@ -137,7 +141,27 @@ class MailContentsControllerTest extends BcTestCase
         //メールのコンテンツサービスをコル
         $mailContentServices = $this->getService(MailContentsServiceInterface::class);
         //データを生成
-        $this->loadFixtureScenario(MailContentsScenario::class);
+        MailContentFactory::make([
+            'id' => 1,
+            'description' => 'description test',
+            'sender_name' => 'baserCMSサンプル',
+            'subject_user' => '【baserCMS】お問い合わせ頂きありがとうございます。',
+            'subject_admin' => '【baserCMS】お問い合わせを受け付けました',
+            'form_template' => 'default',
+            'mail_template' => 'mail_default',
+            'redirect_url' => '/',
+        ])->persist();
+        ContentFactory::make([
+            'name' => 'name_test',
+            'plugin' => 'BcMail',
+            'type' => 'MailContent',
+            'url' => '/contact/',
+            'title' => 'お問い合わせ',
+            'entity_id' => 1,
+            'rght' => 1,
+            'lft' => 2,
+            'created_date' => '2023-02-16 16:41:37',
+        ])->persist();
         //Postデータを準備
         $mailContent = $mailContentServices->get(1);
         $mailContent->description = 'this is api edit';
@@ -173,8 +197,30 @@ class MailContentsControllerTest extends BcTestCase
      */
     public function testDelete()
     {
+        //メールのコンテンツサービスをコル
+        $mailContentServices = $this->getService(MailContentsServiceInterface::class);
         //データを生成
-        $this->loadFixtureScenario(MailContentsScenario::class);
+        MailContentFactory::make([
+            'id' => 1,
+            'description' => 'description test',
+            'sender_name' => 'baserCMSサンプル',
+            'subject_user' => '【baserCMS】お問い合わせ頂きありがとうございます。',
+            'subject_admin' => '【baserCMS】お問い合わせを受け付けました',
+            'form_template' => 'default',
+            'mail_template' => 'mail_default',
+            'redirect_url' => '/',
+        ])->persist();
+        ContentFactory::make([
+            'name' => 'name_test',
+            'plugin' => 'BcMail',
+            'type' => 'MailContent',
+            'url' => '/contact/',
+            'title' => 'お問い合わせ',
+            'entity_id' => 1,
+            'rght' => 1,
+            'lft' => 2,
+            'created_date' => '2023-02-16 16:41:37',
+        ])->persist();
         //APIを呼ぶ
         $this->post("/baser/api/admin/bc-mail/mail_contents/delete/1.json?token=" . $this->accessToken);
         // レスポンスコードを確認する
@@ -213,6 +259,6 @@ class MailContentsControllerTest extends BcTestCase
         $result = json_decode((string)$this->_response->getBody());
         // 戻るメッセージを確認
         $this->assertEquals($result->message, 'メールフォームのコピー「メールコンテンツコピー」を追加しました。');
-        $this->assertNotNull($result->mailContent);
+        $this->assertNotNull($result->mailContents);
     }
 }

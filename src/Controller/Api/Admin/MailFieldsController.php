@@ -189,9 +189,9 @@ class MailFieldsController extends BcAdminApiController
      */
     public function list(MailFieldsServiceInterface $service, int $mailContentId)
     {
-        $mailFields = $message = null;
+        $mailField = $message = null;
         try {
-            $mailFields = $service->getList($mailContentId);
+            $mailField = $service->getList($mailContentId);
         } catch (RecordNotFoundException $e) {
             $this->setResponse($this->response->withStatus(404));
             $message = __d('baser_core', 'データが見つかりません。');
@@ -201,10 +201,10 @@ class MailFieldsController extends BcAdminApiController
         }
 
         $this->set([
-            'mailFields' => $mailFields,
+            'mailField' => $mailField,
             'message' => $message
         ]);
-        $this->viewBuilder()->setOption('serialize', ['mailFields', 'message']);
+        $this->viewBuilder()->setOption('serialize', ['mailField', 'message']);
     }
 
     /**

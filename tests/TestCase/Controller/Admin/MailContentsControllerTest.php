@@ -18,6 +18,7 @@ use BaserCore\TestSuite\BcTestCase;
 use BaserCore\Utility\BcContainerTrait;
 use BcMail\Controller\Admin\MailContentsController;
 use BcMail\Service\MailContentsServiceInterface;
+use BcMail\Test\Factory\MailContentFactory;
 use BcMail\Test\Scenario\MailContentsScenario;
 use Cake\Event\Event;
 use Cake\ORM\TableRegistry;

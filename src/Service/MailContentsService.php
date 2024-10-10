@@ -237,7 +237,6 @@ class MailContentsService implements MailContentsServiceInterface
      * @return EntityInterface $result
      * @checked
      * @unitTest
-     * @noTodo
      */
     public function copy($postData)
     {
