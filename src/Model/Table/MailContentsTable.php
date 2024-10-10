@@ -143,7 +143,6 @@ class MailContentsTable extends MailAppTable
         // description
         $validator
             ->scalar('description')
-            ->allowEmptyString('description')
             ->add('description', [
                 'containsScript' => [
                     'rule' => ['containsScript'],
