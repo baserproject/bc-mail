@@ -12,7 +12,6 @@
 namespace BcMail\Service\Front;
 
 use BaserCore\Error\BcException;
-use BaserCore\Service\SitesServiceInterface;
 use BaserCore\Utility\BcContainerTrait;
 use BaserCore\Utility\BcSiteConfig;
 use BaserCore\Utility\BcUtil;
@@ -51,11 +50,6 @@ class MailFrontService implements MailFrontServiceInterface
     use BcContainerTrait;
     use MailerAwareTrait;
 
-    /**
-     * MailContentsService
-     * @var MailContentsServiceInterface|MailContentsService
-     */
-    public MailContentsServiceInterface|MailContentsService $MailContentsService;
 
     /**
      * Constructor
@@ -355,10 +349,7 @@ class MailFrontService implements MailFrontServiceInterface
         /** @var MailMessagesService $mailMessagesService */
         $mailMessagesService = $this->getService(MailMessagesServiceInterface::class);
         $mailMessage = $mailMessagesService->MailMessages->convertToDb($mailFields, $mailMessage);
-        $siteService = $this->getService(SitesServiceInterface::class);
-        $site = $siteService->get($mailContent->content->site_id);
         return $mailMessagesService->MailMessages->convertDatasToMail([
-            'site' => $site,
             'message' => $mailMessage,
             'content' => $mailContent->content,
             'mailFields' => $mailFields,
