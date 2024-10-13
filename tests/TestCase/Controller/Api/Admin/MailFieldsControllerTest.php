@@ -11,11 +11,15 @@
 
 namespace BcMail\Test\TestCase\Controller\Api\Admin;
 
+use BaserCore\Service\BcDatabaseServiceInterface;
+use BaserCore\Service\DblogsServiceInterface;
 use BaserCore\Test\Scenario\InitAppScenario;
 use BaserCore\TestSuite\BcTestCase;
 use BaserCore\Utility\BcContainerTrait;
 use BcMail\Service\MailMessagesServiceInterface;
 use BcMail\Service\MailFieldsServiceInterface;
+use BcMail\Test\Factory\MailFieldsFactory;
+use BcMail\Test\Scenario\MailContentsScenario;
 use BcMail\Test\Scenario\MailFieldsScenario;
 use Cake\TestSuite\IntegrationTestTrait;
 use CakephpFixtureFactories\Scenario\ScenarioAwareTrait;
@@ -29,21 +33,6 @@ class MailFieldsControllerTest extends BcTestCase
     use ScenarioAwareTrait;
     use IntegrationTestTrait;
     use BcContainerTrait;
-    /**
-     * Fixtures
-     *
-     * @var array
-     */
-    public $fixtures = [
-        'plugin.BaserCore.Factory/Sites',
-        'plugin.BaserCore.Factory/SiteConfigs',
-        'plugin.BaserCore.Factory/Users',
-        'plugin.BaserCore.Factory/UsersUserGroups',
-        'plugin.BaserCore.Factory/UserGroups',
-        'plugin.BaserCore.Factory/Contents',
-        'plugin.BcMail.Factory/MailContents',
-        'plugin.BcMail.Factory/MailFields',
-    ];
 
     /**
      * set up
@@ -76,6 +65,7 @@ class MailFieldsControllerTest extends BcTestCase
     {
         //データを生成
         $this->loadFixtureScenario(MailFieldsScenario::class);
+        $this->loadFixtureScenario(MailContentsScenario::class);
         //APIを呼ぶ
         $this->get("/baser/api/admin/bc-mail/mail_fields/list/1.json?token=" . $this->accessToken);
         // レスポンスコードを確認する
@@ -103,19 +93,19 @@ class MailFieldsControllerTest extends BcTestCase
             'valid' => 0,
             'not_empty' => 0,
             'valid_ex' => null,
-            'attention'=>null,
-            'before_attachment'=>null,
-            'after_attachment'=>null,
-            'description'=>null,
+            'attention' => 1,
+            'before_attachment' => 1,
+            'after_attachment' => 1,
+            'description' => 'test',
             'source' => '',
             'size' => null,
             'text_rows' => null,
             'maxlength' => 255,
-            'group_field' => null,
-            'group_valid' => null,
-            'options' => null,
-            'class' => null,
-            'default_value' => null,
+            'group_field' => 1,
+            'group_valid' => 1,
+            'options' => 1,
+            'class' => 1,
+            'default_value' => 1,
             'auto_convert' => null,
             'use_field' => 1,
             'no_send' => 0,
@@ -138,9 +128,13 @@ class MailFieldsControllerTest extends BcTestCase
      */
     public function testEdit()
     {
+        $MailMessagesService = $this->getService(MailMessagesServiceInterface::class);
+        $this->loadFixtureScenario(MailContentsScenario::class);
+        //テストデータベースを生成
+        $MailMessagesService->createTable(1);
         //データを生成
         $this->loadFixtureScenario(MailFieldsScenario::class);
-        $data = ['name' => 'name_edited', 'source' => '', 'valid_ex' => ''];
+        $data = ['name' => 'name_edited', 'source' => '', 'valid_ex' => '', 'type' => 'text'];
         //APIを呼ぶ
         $this->post("/baser/api/admin/bc-mail/mail_fields/edit/1.json?token=" . $this->accessToken, $data);
         // レスポンスコードを確認する
@@ -152,7 +146,7 @@ class MailFieldsControllerTest extends BcTestCase
 
         //エラーを発生した場合、
         //データを生成
-        $data = ['name' => '', 'source' => '', 'valid_ex' => ''];
+        $data = ['name' => '', 'source' => '', 'valid_ex' => '', 'type' => 'text'];
         //APIを呼ぶ
         $this->post("/baser/api/admin/bc-mail/mail_fields/edit/1.json?token=" . $this->accessToken, $data);
         // レスポンスコードを確認する
@@ -173,6 +167,7 @@ class MailFieldsControllerTest extends BcTestCase
         //データを生成
         //メールメッセージサービスをコル
         $MailMessagesService = $this->getService(MailMessagesServiceInterface::class);
+        $this->loadFixtureScenario(MailContentsScenario::class);
         //メールメッセージフィルドを追加
         $MailMessagesService->addMessageField(1, 'name_1');
         //メールフィルドのデータを生成
@@ -193,11 +188,15 @@ class MailFieldsControllerTest extends BcTestCase
     public function testCopy()
     {
         //データを生成
-        //メールメッセージサービスをコル
         $MailMessagesService = $this->getService(MailMessagesServiceInterface::class);
+        $BcDatabaseService = $this->getService(BcDatabaseServiceInterface::class);
+
+        //テストデータベースを生成
+        $MailMessagesService->createTable(1);
+        $BcDatabaseService->addColumn('mail_message_1', 'name_1', 'text');
+        //メールメッセージサービスをコル
         $MailFieldsService = $this->getService(MailFieldsServiceInterface::class);
-        //メールメッセージフィルドを追加
-        $MailMessagesService->addMessageField(1, 'name_1');
+        $this->loadFixtureScenario(MailContentsScenario::class);
         //メールフィルドのデータを生成
         $this->loadFixtureScenario(MailFieldsScenario::class);
         //APIを呼ぶ
@@ -209,8 +208,11 @@ class MailFieldsControllerTest extends BcTestCase
         $this->assertNotNull($result->mailField);
         $this->assertEquals($result->message, 'メールフィールド「性」をコピーしました。');
         //メールフィルドがコピーできるか確認
-        $mailField = $MailFieldsService->getIndex(1, ['name' => '性_copy'])->get();
-        $this->assertCount(1, $mailField);
+        $mailFields = $MailFieldsService->getIndex(1)->toArray();
+        $this->assertEquals('性_copy', $mailFields[count($mailFields) - 1]['name']);
+
+        //不要テーブルを削除
+        $MailMessagesService->dropTable(1);
     }
 
     /**
@@ -218,7 +220,39 @@ class MailFieldsControllerTest extends BcTestCase
      */
     public function testBatch()
     {
-        $this->markTestIncomplete('このテストは、まだ実装されていません。');
+        //データを生成
+        $MailMessagesService = $this->getService(MailMessagesServiceInterface::class);
+        $BcDatabaseService = $this->getService(BcDatabaseServiceInterface::class);
+        //テストデータベースを生成
+        $MailMessagesService->createTable(1);
+        $this->loadFixtureScenario(MailFieldsScenario::class);
+        $this->loadFixtureScenario(MailContentsScenario::class);
+        $BcDatabaseService->addColumn('mail_message_1', 'name_1', 'text');
+        $data = [
+            'batch' => 'delete',
+            'batch_targets' => [1],
+        ];
+        //APIを呼ぶ
+        $this->post("/baser/api/admin/bc-mail/mail_fields/batch.json?token=" . $this->accessToken, $data);
+        // レスポンスコードを確認する
+        $this->assertResponseOk();
+        // 戻る値を確認
+        $result = json_decode((string)$this->_response->getBody());
+        $this->assertEquals($result->message, '一括処理が完了しました。');
+
+        // DBログに保存するかどうか確認する
+        $dbLogService = $this->getService(DblogsServiceInterface::class);
+        $dbLog = $dbLogService->getDblogs(1)->toArray()[0];
+        $this->assertEquals('メールフィールド「性」を 削除 しました。', $dbLog->message);
+        $this->assertEquals(1, $dbLog->id);
+        $this->assertEquals('MailFields', $dbLog->controller);
+        $this->assertEquals('batch', $dbLog->action);
+
+        $MailMessagesService->dropTable(1);
+
+        //削除したメールフィルドが存在するか確認すること
+        $this->expectException('Cake\Datasource\Exception\RecordNotFoundException');
+        MailFieldsFactory::get(1);
     }
 
     /**
@@ -226,6 +260,15 @@ class MailFieldsControllerTest extends BcTestCase
      */
     public function testUpdateSort()
     {
-        $this->markTestIncomplete('このテストは、まだ実装されていません。');
+        //データを生成
+        $this->loadFixtureScenario(MailFieldsScenario::class);
+        $this->loadFixtureScenario(MailContentsScenario::class);
+        //APIを呼ぶ
+        $this->post("/baser/api/admin/bc-mail/mail_fields/update_sort/1.json?token=" . $this->accessToken, ['id' => 1, 'offset' => 3]);
+        // レスポンスコードを確認する
+        $this->assertResponseOk();
+        // 戻る値を確認
+        $result = json_decode((string)$this->_response->getBody());
+        $this->assertEquals($result->message, 'メールフィールド「性」の並び替えを更新しました。');
     }
 }

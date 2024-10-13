@@ -20,6 +20,7 @@ use Cake\Datasource\EntityInterface;
 use Cake\Datasource\ResultSetInterface;
 use Cake\Event\Event;
 use Cake\ORM\Query;
+use Cake\ORM\Query\SelectQuery;
 use Cake\ORM\ResultSet;
 use Cake\ORM\TableRegistry;
 use BaserCore\Annotation\UnitTest;
@@ -57,6 +58,7 @@ class MailMessagesTable extends MailAppTable
      * @return void
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function initialize(array $config): void
     {
@@ -81,6 +83,7 @@ class MailMessagesTable extends MailAppTable
      * @return boolean
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function setup(int $mailContentId, array $postData = [])
     {
@@ -102,6 +105,7 @@ class MailMessagesTable extends MailAppTable
      * @param int $mailContentId
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function setMailFields(int $mailContentId)
     {
@@ -117,6 +121,8 @@ class MailMessagesTable extends MailAppTable
      *
      * @param Validator $validator
      * @return Validator
+     * @checked
+     * @noTodo
      */
     public function validationDefault(Validator $validator): Validator
     {
@@ -149,7 +155,7 @@ class MailMessagesTable extends MailAppTable
         if (!is_int($mailContentId)) {
             throw new BcException(__d('baser_core', 'MailMessageService::createTableName() の引数 $mailContentId は int 型しか受けつけていません。'));
         }
-        return 'mail_message_' . $mailContentId;
+        return $this->addPrefix('mail_message_' . $mailContentId);
     }
 
     /**
@@ -185,6 +191,9 @@ class MailMessagesTable extends MailAppTable
      * After Marshal
      *
      * @param Event $event
+     * @return void
+     * @checked
+     * @noTodo
      */
     public function afterMarshal(Event $event)
     {
@@ -203,7 +212,6 @@ class MailMessagesTable extends MailAppTable
      */
     protected function setupValidate(array $postData)
     {
-        if (!$postData) return;
         $validator = new $this->_validatorClass();
         $validator->setProvider('mailMessage', 'BcMail\Model\Validation\MailMessageValidation');
         $validator->setProvider('bc', 'BaserCore\Model\Validation\BcValidation');
@@ -224,10 +232,21 @@ class MailMessagesTable extends MailAppTable
                     }
                 } else {
                     $validator->requirePresence($mailField->field_name)
-                        ->notEmpty($mailField->field_name, __d('baser_core', '必須項目です。'));
+                        ->notEmptyString($mailField->field_name, __d('baser_core', '必須項目です。'));
                 }
             } else {
-                $validator->allowEmpty($mailField->field_name);
+                $validator->allowEmptyString($mailField->field_name);
+            }
+
+            // ファイル拡張子チェックデフォルト設定
+            if ($mailField->type === 'file') {
+                $validator->add($mailField->field_name, [
+                    'fileExt' => [
+                        'provider' => 'bc',
+                        'rule' => ['fileExt', 'gif,jpg,jpeg,png,pdf'],
+                        'message' => __d('baser_core', 'ファイル形式が無効です。')
+                    ]
+                ]);
             }
 
             // ### 拡張バリデーション
@@ -390,6 +409,7 @@ class MailMessagesTable extends MailAppTable
      * @return void
      * @checked
      * @noTodo
+     * @unitTest
      */
     protected function _validGroupErrorCheck(EntityInterface $entity)
     {
@@ -420,6 +440,7 @@ class MailMessagesTable extends MailAppTable
      * @return void
      * @checked
      * @noTodo
+     * @unitTest
      */
     protected function _validGroupComplete(EntityInterface $entity)
     {
@@ -461,6 +482,7 @@ class MailMessagesTable extends MailAppTable
      * @return EntityInterface
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function convertToDb(ResultSetInterface $mailFields, EntityInterface $mailMessage)
     {
@@ -482,95 +504,12 @@ class MailMessagesTable extends MailAppTable
     }
 
     /**
-     * 機種依存文字の変換処理
-     * 内部文字コードがUTF-8である必要がある。
-     * 多次元配列には対応していない。
-     *
-     * @param string $str 変換対象文字列
-     * @return string $str 変換後文字列
-     * @TODO AppExModeに移行すべきかも
-     */
-    public function replaceText($str)
-    {
-        $arr = [
-            "\xE2\x85\xA0" => "I",
-            "\xE2\x85\xA1" => "II",
-            "\xE2\x85\xA2" => "III",
-            "\xE2\x85\xA3" => "IV",
-            "\xE2\x85\xA4" => "V",
-            "\xE2\x85\xA5" => "VI",
-            "\xE2\x85\xA6" => "VII",
-            "\xE2\x85\xA7" => "VIII",
-            "\xE2\x85\xA8" => "IX",
-            "\xE2\x85\xA9" => "X",
-            "\xE2\x85\xB0" => "i",
-            "\xE2\x85\xB1" => "ii",
-            "\xE2\x85\xB2" => "iii",
-            "\xE2\x85\xB3" => "iv",
-            "\xE2\x85\xB4" => "v",
-            "\xE2\x85\xB5" => "vi",
-            "\xE2\x85\xB6" => "vii",
-            "\xE2\x85\xB7" => "viii",
-            "\xE2\x85\xB8" => "ix",
-            "\xE2\x85\xB9" => "x",
-            "\xE2\x91\xA0" => "(1)",
-            "\xE2\x91\xA1" => "(2)",
-            "\xE2\x91\xA2" => "(3)",
-            "\xE2\x91\xA3" => "(4)",
-            "\xE2\x91\xA4" => "(5)",
-            "\xE2\x91\xA5" => "(6)",
-            "\xE2\x91\xA6" => "(7)",
-            "\xE2\x91\xA7" => "(8)",
-            "\xE2\x91\xA8" => "(9)",
-            "\xE2\x91\xA9" => "(10)",
-            "\xE2\x91\xAA" => "(11)",
-            "\xE2\x91\xAB" => "(12)",
-            "\xE2\x91\xAC" => "(13)",
-            "\xE2\x91\xAD" => "(14)",
-            "\xE2\x91\xAE" => "(15)",
-            "\xE2\x91\xAF" => "(16)",
-            "\xE2\x91\xB0" => "(17)",
-            "\xE2\x91\xB1" => "(18)",
-            "\xE2\x91\xB2" => "(19)",
-            "\xE2\x91\xB3" => "(20)",
-            "\xE3\x8A\xA4" => "(上)",
-            "\xE3\x8A\xA5" => "(中)",
-            "\xE3\x8A\xA6" => "(下)",
-            "\xE3\x8A\xA7" => "(左)",
-            "\xE3\x8A\xA8" => "(右)",
-            "\xE3\x8D\x89" => "ミリ",
-            "\xE3\x8D\x8D" => "メートル",
-            "\xE3\x8C\x94" => "キロ",
-            "\xE3\x8C\x98" => "グラム",
-            "\xE3\x8C\xA7" => "トン",
-            "\xE3\x8C\xA6" => "ドル",
-            "\xE3\x8D\x91" => "リットル",
-            "\xE3\x8C\xAB" => "パーセント",
-            "\xE3\x8C\xA2" => "センチ",
-            "\xE3\x8E\x9D" => "cm",
-            "\xE3\x8E\x8F" => "kg",
-            "\xE3\x8E\xA1" => "m2",
-            "\xE3\x8F\x8D" => "K.K.",
-            "\xE2\x84\xA1" => "TEL",
-            "\xE2\x84\x96" => "No.",
-            "\xE3\x8B\xBF" => "令和",
-            "\xE3\x8D\xBB" => "平成",
-            "\xE3\x8D\xBC" => "昭和",
-            "\xE3\x8D\xBD" => "大正",
-            "\xE3\x8D\xBE" => "明治",
-            "\xE3\x88\xB1" => "(株)",
-            "\xE3\x88\xB2" => "(有)",
-            "\xE3\x88\xB9" => "(代)",
-        ];
-
-        return str_replace(array_keys($arr), array_values($arr), $str);
-    }
-
-    /**
      * メール用に変換する
      *
      * @param array $dbDatas
      * @return array $dbDatas
+     * @checked
+     * @noTodo
      * @TODO ヘルパー化すべきかも
      */
     public function convertDatasToMail($data, $options)
@@ -593,8 +532,8 @@ class MailMessagesTable extends MailAppTable
                 }
             }
             if (!is_array($message->{$fieldName})) {
-                $mailContent->subject_user = str_replace('{$' . $fieldName . '}', $message->{$fieldName}, $mailContent->subject_user);
-                $mailContent->subject_admin = str_replace('{$' . $fieldName . '}', $message->{$fieldName}, $mailContent->subject_admin);
+                $mailContent->subject_user = str_replace('{$' . $fieldName . '}', $message->{$fieldName}?? '', $mailContent->subject_user);
+                $mailContent->subject_admin = str_replace('{$' . $fieldName . '}', $message->{$fieldName}?? '', $mailContent->subject_admin);
             }
             // パスワードは入力値をマスクした値を表示
             if ($value->type === 'password' && $message->{$fieldName} && !empty($options['maskedPasswords'][$fieldName])) {
@@ -621,11 +560,12 @@ class MailMessagesTable extends MailAppTable
     /**
      * 受信メッセージの内容を表示状態に変換する
      *
-     * @param int $id
-     * @param $messages
+     * @param array $messages
      * @return array
+     * @checked
+     * @noTodo
      */
-    public function convertMessageToCsv($messages)
+    public function convertMessageToCsv(array $messages)
     {
         // フィールド名とデータの変換に必要なヘルパーを読み込む
         $maildataHelper = new MaildataHelper(new View());
@@ -660,7 +600,7 @@ class MailMessagesTable extends MailAppTable
 
         // メール受信テーブルの作成
         $MailContent = ClassRegistry::init('BcMail.MailContent');
-        $contents = $MailContent->find('all', ['recursive' => -1]);
+        $contents = $MailContent->find('all', ...['recursive' => -1]);
 
         $result = true;
         foreach($contents as $content) {
@@ -679,12 +619,12 @@ class MailMessagesTable extends MailAppTable
      * find
      *
      * @param String $type
-     * @param mixed $query
-     * @return Array
+     * @param mixed $args
+     * @return SelectQuery
      */
-    public function find(string $type = 'all', array $options = []): Query
+    public function find(string $type = 'all', mixed ...$args): SelectQuery
     {
-        return parent::find($type, $options);
+        return parent::find($type, ...$args);
         // TODO ucmitz 以下、未検証
         // テーブルを共用しているため、環境によってはデータ取得に失敗する。
         // その原因のキャッシュメソッドをfalseに設定。

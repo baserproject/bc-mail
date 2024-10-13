@@ -11,13 +11,15 @@
 
 namespace BcMail\Model\Table;
 
-use BaserCore\Event\BcEventDispatcherTrait;
 use BaserCore\Model\Entity\Content;
 use BaserCore\Utility\BcContainerTrait;
 use BcMail\Service\MailMessagesServiceInterface;
 use Cake\Core\Configure;
 use Cake\Core\Plugin;
+use Cake\Datasource\EntityInterface;
+use Cake\Event\EventInterface;
 use Cake\ORM\Exception\PersistenceFailedException;
+use Cake\ORM\Query;
 use Cake\Validation\Validator;
 use BaserCore\Annotation\UnitTest;
 use BaserCore\Annotation\NoTodo;
@@ -34,7 +36,6 @@ class MailContentsTable extends MailAppTable
     /**
      * Trait
      */
-    use BcEventDispatcherTrait;
     use BcContainerTrait;
 
     /**
@@ -92,6 +93,8 @@ class MailContentsTable extends MailAppTable
      *
      * @param Validator $validator
      * @return Validator
+     * @checked
+     * @noTodo
      */
     public function validationDefault(Validator $validator): Validator
     {
@@ -136,45 +139,46 @@ class MailContentsTable extends MailAppTable
 
         // redirect_url
         $validator
+            ->allowEmptyString('redirect_url')
             ->scalar('redirect_url')
+            ->regex('redirect_url', '/^http|^\/.*/', __d('baser_core', 'リダイレクトURLはURLの形式を入力してください。'))
             ->maxLength('redirect_url', 255, __d('baser_core', 'リダイレクトURLは255文字以内で入力してください。'));
+
+        // description
+        $validator
+            ->scalar('description')
+            ->allowEmptyString('description')
+            ->add('description', [
+                'containsScript' => [
+                    'rule' => ['containsScript'],
+                    'provider' => 'bc',
+                    'message' => __d('baser_core', '説明文でスクリプトの入力は許可されていません。')
+                ]
+            ]);
 
         // sender_1
         $validator
             ->scalar('sender_1')
             ->allowEmptyString('sender_1')
-            ->email('sender_1', true, __d('baser_core', '送信先メールアドレスのEメールの形式が不正です。'));
+            ->add('sender_1', [
+                'emails' => [
+                    'rule' => 'emails',
+                    'provider' => 'bc',
+                    'message' => __d('baser_core', '送信先メールアドレスのEメールの形式が不正です。')
+                ]]);
 
         // sender_2
         $validator
             ->scalar('sender_2')
             ->allowEmptyString('sender_2')
-            ->email('sender_2', true, __d('baser_core', '送信先メールアドレスのEメールの形式が不正です。'));
-
-        // ssl_on
-        $validator
-            ->add('ssl_on', [
-                'checkSslUrl' => [
-                    'rule' => 'checkSslUrl',
-                    'provider' => 'table',
-                    'message' => __d('baser_core', 'SSL通信を利用するには、システム設定で、事前にSSL通信用のWebサイトURLを指定してください。')
+            ->add('sender_2', [
+                'emails' => [
+                    'rule' => 'emails',
+                    'provider' => 'bc',
+                    'message' => __d('baser_core', 'BCC用送信先メールアドレスのEメールの形式が不正です。')
                 ]]);
 
         return $validator;
-    }
-
-    /**
-     * SSL用のURLが設定されているかチェックする
-     *
-     * @param array $check チェック対象文字列
-     * @return boolean
-     */
-    public function checkSslUrl($value)
-    {
-        if ($value && !Configure::read('BcEnv.sslUrl')) {
-            return false;
-        }
-        return true;
     }
 
     /**
@@ -182,6 +186,7 @@ class MailContentsTable extends MailAppTable
      *
      * @param array $check チェック対象文字列
      * @return boolean
+     * @unitTest
      */
     public static function alphaNumeric($check)
     {
@@ -192,21 +197,21 @@ class MailContentsTable extends MailAppTable
     }
 
     /**
-     * afterSave
-     *
-     * @return void
+     * beforeSave
+     * @param EventInterface $event
+     * @param EntityInterface $entity
+     * @param \ArrayObject $options
+     * @return boolean
      */
-    public function afterSave($created, $options = [])
+    public function beforeSave(EventInterface $event, EntityInterface $entity, \ArrayObject $options)
     {
-        // TODO ucmitz 未実装
-        return;
-
-        // 検索用テーブルへの登録・削除
-        if (!$this->data['Content']['exclude_search'] && $this->data['Content']['status']) {
-            $this->saveSearchIndex($this->createSearchIndex($this->data));
-        } else {
-            $this->deleteSearchIndex($this->data['MailContent']['id']);
+        if (!Plugin::isLoaded('BcSearchIndex')) {
+            return true;
         }
+        if (empty($entity->content) || !empty($entity->content->exclude_search)) {
+            $this->setExcluded();
+        }
+        return true;
     }
 
     /**
@@ -214,28 +219,26 @@ class MailContentsTable extends MailAppTable
      *
      * @param array $data
      * @return array|false
+     * @checked
+     * @noTodo
+     * @unitTest
      */
-    public function createSearchIndex($data)
+    public function createSearchIndex($mailContent)
     {
-        if (!isset($data['MailContent']) || !isset($data['Content'])) {
+        if (!$mailContent || !isset($mailContent->content)) {
             return false;
         }
-        $mailContent = $data['MailContent'];
-        $content = $data['Content'];
         return [
-            'SearchIndex' =>
-            [
-                'type'          => __d('baser_core', 'メール'),
-                'model_id'      => (!empty($mailContent['id'])) ? $mailContent['id'] : $this->id,
-                'content_id'    => $content['id'],
-                'site_id'       => $content['site_id'],
-                'title'         => $content['title'],
-                'detail'        => $mailContent['description'],
-                'url'           => $content['url'],
-                'status'        => $content['status'],
-                'publish_begin' => $content['publish_begin'],
-                'publish_end'   => $content['publish_end']
-            ]
+            'type' => __d('baser_core', 'メール'),
+            'model_id' => $mailContent->id,
+            'content_id' => $mailContent->content->id,
+            'site_id' => $mailContent->content->site_id,
+            'title' => $mailContent->content->title,
+            'detail' => $mailContent->description,
+            'url' => $mailContent->content->url,
+            'status' => $mailContent->content->status,
+            'publish_begin' => $mailContent->content->publish_begin,
+            'publish_end' => $mailContent->content->publish_end
         ];
     }
 
@@ -248,11 +251,12 @@ class MailContentsTable extends MailAppTable
      * @param int $newAuthorId 新しいユーザーID
      * @param int $newSiteId 新しいサイトID
      * @return mixed mailContent|false
+     * @checked
      */
     public function copy(
-        int $id,
+        ?int $id,
         int $newParentId,
-        string $newTitle,
+        string|null $newTitle,
         int $newAuthorId,
         int $newSiteId = null
     ) {
@@ -278,7 +282,7 @@ class MailContentsTable extends MailAppTable
         $data->content = new Content([
             'name' => $name,
             'parent_id' => $newParentId,
-            'title' => $newTitle,
+            'title' => $newTitle ?? $oldData->content->title . '_copy',
             'author_id' => $newAuthorId,
             'site_id' => $newSiteId,
             'exclude_search' => false,
@@ -306,7 +310,7 @@ class MailContentsTable extends MailAppTable
             // メールフィールドコピー
             $mailFields = $this->MailFields->find()
                 ->where(['MailFields.mail_content_id' => $id])
-                ->order(['MailFields.sort'])
+                ->orderBy(['MailFields.sort'])
                 ->all();
             if($mailFields) {
                 foreach($mailFields as $field) {
@@ -362,12 +366,12 @@ class MailContentsTable extends MailAppTable
     public function getConditionAllowAccepting()
     {
         $conditions[] = ['or' => [
-            [$this->alias . '.publish_begin <=' => date('Y-m-d H:i:s')],
-            [$this->alias . '.publish_begin' => null],
+            ['MailContents.publish_begin <=' => date('Y-m-d H:i:s')],
+            ['MailContents.publish_begin IS' => null],
         ]];
         $conditions[] = ['or' => [
-            [$this->alias . '.publish_end >=' => date('Y-m-d H:i:s')],
-            [$this->alias . '.publish_end' => null],
+            ['MailContents.publish_end >=' => date('Y-m-d H:i:s')],
+            ['MailContents.publish_end IS' => null],
         ]];
         return $conditions;
     }
@@ -375,22 +379,12 @@ class MailContentsTable extends MailAppTable
     /**
      * 公開されたコンテンツを取得する
      *
-     * @param Model $model
-     * @param string $type
-     * @param array $query
-     * @return array|null
+     * @param Query $query
+     * @return Query
      */
-    public function findAccepting($type = 'first', $query = [])
+    public function findAccepting(Query $query)
     {
-        $getConditionAllowAccepting = $this->getConditionAllowAccepting();
-        if (!empty($query['conditions'])) {
-            $query['conditions'] = array_merge(
-                $getConditionAllowAccepting,
-                $query['conditions']
-            );
-        } else {
-            $query['conditions'] = $getConditionAllowAccepting;
-        }
-        return $this->find($type, $query);
+        return $query->where($this->getConditionAllowAccepting());
     }
+
 }

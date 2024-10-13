@@ -51,10 +51,13 @@ class MailMessagesController extends MailAdminAppController
      * beforeFilter
      *
      * @return void
+     * @checked
+     * @noTodo
      */
     public function beforeFilter(EventInterface $event)
     {
-        parent::beforeFilter($event);
+        $response = parent::beforeFilter($event);
+        if($response) return $response;
         $mailContentId = $this->request->getParam('pass.0');
         if (!$mailContentId) throw new BcException(__d('baser_core', '不正なURLです。'));
         /* @var ContentsService $contentsService */
@@ -151,6 +154,10 @@ class MailMessagesController extends MailAdminAppController
 
     /**
      * メールフォームに添付したファイルを開く
+     * @param MailMessagesServiceInterface $service
+     * @return void
+     * @checked
+     * @noTodo
      */
     public function attachment(MailMessagesServiceInterface $service)
     {
@@ -160,7 +167,14 @@ class MailMessagesController extends MailAdminAppController
         $file = implode('/', $args);
         $service->MailMessages->setup($mailContentId);
         $settings = $service->MailMessages->getBehavior('BcUpload')->getSettings();
-        $filePath = WWW_ROOT . 'files' . DS . $settings['saveDir'] . DS . $file;
+        $basePath = realpath(WWW_ROOT . 'files' . DS . $settings['saveDir']);
+        $filePath = realpath($basePath . DS . $file);
+
+        // basePath配下でない場合は表示しない
+        if (strpos($filePath, $basePath) !== 0) {
+                $this->notFound();
+        }
+
         $ext = BcUtil::decodeContent(null, $file);
         $mineType = 'application/octet-stream';
         if ($ext !== 'gif' && $ext !== 'jpg' && $ext !== 'png') {
@@ -178,6 +192,8 @@ class MailMessagesController extends MailAdminAppController
      *
      * @param int $mailContentId
      * @return void
+     * @checked
+     * @noTodo
      */
     public function download_csv(MailMessagesAdminServiceInterface $service, int $mailContentId)
     {

@@ -20,6 +20,7 @@ use BcMail\Model\Entity\MailField;
 use BcMail\Model\Table\MailFieldsTable;
 use Cake\Core\Configure;
 use Cake\Datasource\EntityInterface;
+use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Throwable;
 
@@ -37,9 +38,22 @@ class MailFieldsService implements MailFieldsServiceInterface
     use BcContainerTrait;
 
     /**
+     * MailFieldsTable
+     * @var MailFieldsTable|Table
+     */
+    public MailFieldsTable|Table $MailFields;
+
+    /**
+     * MailMessagesService
+     * @var MailMessagesServiceInterface|MailMessagesService
+     */
+    public MailMessagesServiceInterface|MailMessagesService $MailMessagesService;
+
+    /**
      * Constructor
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function __construct()
     {
@@ -54,6 +68,7 @@ class MailFieldsService implements MailFieldsServiceInterface
      * @return EntityInterface|MailField
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function get(int $id, array $queryParams = [])
     {
@@ -67,16 +82,17 @@ class MailFieldsService implements MailFieldsServiceInterface
             $conditions['use_field'] = true;
         }
 
-        return $this->MailFields->get($id, [
-            'contain' => ['MailContents' => ['Contents']],
-            'conditions' => $conditions
-        ]);
+        return $this->MailFields->get($id,
+            contain: ['MailContents' => ['Contents']],
+            conditions: $conditions
+        );
     }
 
     /**
      * 一覧データ取得
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getIndex(int $mailContentId, array $queryParams = [])
     {
@@ -89,9 +105,12 @@ class MailFieldsService implements MailFieldsServiceInterface
         $conditions = ['MailFields.mail_content_id' => $mailContentId];
         if (!is_null($options['use_field'])) $conditions['use_field'] = $options['use_field'];
 
+        if (is_null($options['contain']))
+            $options['contain'] = [];
+
         $query = $this->MailFields->find()
             ->contain($options['contain'])
-            ->order(['MailFields.sort']);
+            ->orderBy(['MailFields.sort']);
         if (!empty($queryParams['limit'])) {
             $query->limit($queryParams['limit']);
         }
@@ -131,6 +150,7 @@ class MailFieldsService implements MailFieldsServiceInterface
      *
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getNew($mailContentId)
     {
@@ -148,6 +168,7 @@ class MailFieldsService implements MailFieldsServiceInterface
      *
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function create(array $postData)
     {
@@ -179,6 +200,7 @@ class MailFieldsService implements MailFieldsServiceInterface
      * @param array $postData
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function update(EntityInterface $entity, array $postData)
     {
@@ -208,6 +230,7 @@ class MailFieldsService implements MailFieldsServiceInterface
      * @param int $id
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function delete(int $id)
     {
@@ -232,6 +255,7 @@ class MailFieldsService implements MailFieldsServiceInterface
      * @param int $id
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function copy(int $mailContentId, int $id)
     {
@@ -249,6 +273,7 @@ class MailFieldsService implements MailFieldsServiceInterface
      * @param int $id
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function publish(int $id)
     {
@@ -263,6 +288,7 @@ class MailFieldsService implements MailFieldsServiceInterface
      * @param int $id
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function unpublish(int $id)
     {
@@ -279,6 +305,7 @@ class MailFieldsService implements MailFieldsServiceInterface
      * @return array
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getTitlesById(array $ids): array
     {
@@ -292,6 +319,7 @@ class MailFieldsService implements MailFieldsServiceInterface
      * @return bool
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function batch(string $method, array $ids): bool
     {
@@ -317,6 +345,7 @@ class MailFieldsService implements MailFieldsServiceInterface
      * @return bool
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function changeSort(int $id, int $offset, array $conditions = []): bool
     {

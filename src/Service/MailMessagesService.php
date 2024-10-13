@@ -23,6 +23,8 @@ use BcMail\Model\Entity\MailContent;
 use BcMail\Model\Entity\MailMessage;
 use BcMail\Model\Table\MailMessagesTable;
 use Cake\Datasource\EntityInterface;
+use Cake\Datasource\ResultSetInterface;
+use Cake\ORM\Exception\PersistenceFailedException;
 use Cake\ORM\TableRegistry;
 
 /**
@@ -39,9 +41,22 @@ class MailMessagesService implements MailMessagesServiceInterface
     use BcContainerTrait;
 
     /**
+     * BcDatabaseService
+     * @var BcDatabaseServiceInterface|BcDatabaseService
+     */
+    public BcDatabaseServiceInterface|BcDatabaseService $BcDatabaseService;
+
+    /**
+     * BcDatabaseService
+     * @var MailMessagesTable|\Cake\ORM\Table
+     */
+    public MailMessagesTable|\Cake\ORM\Table $MailMessages;
+
+    /**
      * Constructor
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function __construct()
     {
@@ -57,6 +72,7 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @param int $mailContentId
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function setup(int $mailContentId, $postData = [])
     {
@@ -70,6 +86,7 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return EntityInterface
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function get(int $id)
     {
@@ -83,6 +100,7 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return \Cake\ORM\Query
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getIndex(array $queryParams = [])
     {
@@ -109,25 +127,50 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @param EntityInterface|MailContent $mailContent
      * @param array|MailMessage $postData
      * @return EntityInterface
+     * @unitTest
+     * @checked
+     * @noTodo
      */
     public function create(EntityInterface $mailContent, $postData)
     {
-        if (!$postData instanceof EntityInterface) {
-            // newEntity() だと配列が消えてしまうため、エンティティクラスで直接変換
-            $entity = new MailMessage($postData, ['source' => 'BcMail.MailMessages']);
-        } else {
-            $entity = $postData;
+        $entity = $this->MailMessages->newEntity($postData);
+        foreach ($postData as $postKey => $postValue) {
+            if (is_array($postValue)) {
+                $entity->$postKey = $postValue;
+            }
         }
-        $validateEntity = $this->MailMessages->patchEntity($this->MailMessages->newEmptyEntity(), $entity->toArray());
-        if (!$validateEntity->getErrors()) {
+        if (!$entity->getErrors()) {
             $mailFieldsTable = TableRegistry::getTableLocator()->get('BcMail.MailFields');
             $mailFields = $mailFieldsTable->find()->where(['MailFields.mail_content_id' => $mailContent->id, 'MailFields.use_field' => true])->all();
             $this->MailMessages->convertToDb($mailFields, $entity);
             if ($mailContent->save_info) {
                 return $this->MailMessages->saveOrFail($entity);
+            } else {
+                return $entity;
             }
         }
-        return $entity;
+        throw new PersistenceFailedException($entity, __d('baser_core', '入力エラーです。内容を見直してください。'));
+    }
+
+    /**
+     * エンティティをフォーム用のデータに変換する
+     *
+     * @param EntityInterface $mailMessage
+     * @return EntityInterface
+     * @checked
+     * @noTodo
+     */
+    public function convertToForm(EntityInterface $mailMessage)
+    {
+        foreach($this->MailMessages->mailFields as $mailField) {
+            if (empty($mailMessage->{$mailField->field_name})) continue;
+            $value = $mailMessage->{$mailField->field_name};
+            // マルチチェックのデータを配列に変換
+            if ($mailField->type === 'multi_check' && $mailField->use_field && $value && strpos($value, '|') !== false) {
+                $mailMessage->{$mailField->field_name} = explode("|", $value);
+            }
+        }
+        return $mailMessage;
     }
 
     /**
@@ -136,6 +179,8 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @param EntityInterface $entity
      * @param array $postData
      * @return EntityInterface|null
+     * @checked
+     * @noTodo
      */
     public function update(EntityInterface $entity, array $postData): ?EntityInterface
     {
@@ -153,6 +198,7 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return bool
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function delete(int $id): bool
     {
@@ -167,6 +213,7 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return bool
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function batch(string $method, array $ids): bool
     {
@@ -191,6 +238,7 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return bool
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function addMessageField(int $mailContentId, string $fieldName): bool
     {
@@ -205,6 +253,7 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return string
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function createTableName(int $mailContentId)
     {
@@ -222,6 +271,7 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return boolean
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function createTable(int $mailContentId)
     {
@@ -243,6 +293,7 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return boolean
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function dropTable(int $mailContentId)
     {
@@ -261,6 +312,7 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return array|bool
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function deleteMessageField(int $mailContentId, string $field)
     {
@@ -277,6 +329,7 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return array|bool
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function renameMessageField(int $mailContentId, string $oldFieldName, string $newfieldName)
     {
@@ -294,6 +347,7 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return boolean
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function construction(int $mailContentId): bool
     {
@@ -321,6 +375,35 @@ class MailMessagesService implements MailMessagesServiceInterface
     }
 
     /**
+     * 全てのメール受信テーブルの再構築を行う
+     * @return bool
+     */
+    public function reconstructionAll(): bool
+    {
+        $mailContentsTable = TableRegistry::getTableLocator()->get('BcMail.MailContents');
+        $mailContents = $mailContentsTable->find()->all();
+        $mailContentsTable->getConnection()->begin();
+        $result = true;
+        foreach($mailContents as $mailContent) {
+            if ($this->createTable($mailContent->id)) {
+                if (!$this->construction($mailContent->id)) {
+                    $result = false;
+                    break;
+                }
+            } else {
+                $result = false;
+                break;
+            }
+        }
+        if($result) {
+            $mailContentsTable->getConnection()->commit();
+        } else {
+            $mailContentsTable->getConnection()->rollback();
+        }
+        return $result;
+    }
+
+    /**
      * 初期値の設定をする
      *
      * @param int $mailContentId
@@ -328,6 +411,7 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return EntityInterface
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getNew(int $mailContentId, array $params): EntityInterface
     {
@@ -341,7 +425,10 @@ class MailMessagesService implements MailMessagesServiceInterface
                 // 対象フィールドがあれば、バリデートグループごとに配列に格納する
                 if (is_null($mailField->default_value) || $mailField->default_value === "") continue;
                 if ($mailField->type === 'multi_check') {
-                    $messageArray[$mailField['field_name']][0] = $mailField->default_value;
+                    $messageArray[$mailField['field_name']] = array_map(function($value) {
+                        // \r が含まれている可能性があるため除外する
+                        return trim($value);
+                    }, explode("\n", $mailField->default_value));
                 } else {
                     $messageArray[$mailField['field_name']] = $mailField->default_value;
                 }
@@ -350,10 +437,12 @@ class MailMessagesService implements MailMessagesServiceInterface
 
         if ($params) {
             foreach($params as $key => $value) {
-                $messageArray[$key] = h(base64UrlsafeDecode($value));
+                $messageArray[$key] = h(BcUtil::base64UrlSafeDecode($value));
             }
         }
-        return $this->MailMessages->newEntity($messageArray, ['validate' => false]);
+
+        // 配列が除外されてしまうため newEntity() は利用しない
+        return new MailMessage($messageArray, ['source' => 'BcMail.MailMessages']);
     }
 
     /**
@@ -365,6 +454,7 @@ class MailMessagesService implements MailMessagesServiceInterface
      * @return array $data
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function autoConvert(int $mailContentId, array $data): array
     {
@@ -381,6 +471,7 @@ class MailMessagesService implements MailMessagesServiceInterface
             if ($value !== null) {
                 // 半角処理
                 if ($mailField->auto_convert === 'CONVERT_HANKAKU') {
+                    $value = str_replace('ー', '-', $value); // 全角ハイフンを半角ハイフンに置換
                     $value = mb_convert_kana($value, 'a');
                 }
                 // 全角処理

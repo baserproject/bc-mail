@@ -12,6 +12,7 @@
 namespace BcMail\Service\Front;
 
 use BaserCore\Error\BcException;
+use BaserCore\Service\SitesServiceInterface;
 use BaserCore\Utility\BcContainerTrait;
 use BaserCore\Utility\BcSiteConfig;
 use BaserCore\Utility\BcUtil;
@@ -50,6 +51,11 @@ class MailFrontService implements MailFrontServiceInterface
     use BcContainerTrait;
     use MailerAwareTrait;
 
+    /**
+     * MailContentsService
+     * @var MailContentsServiceInterface|MailContentsService
+     */
+    public MailContentsServiceInterface|MailContentsService $MailContentsService;
 
     /**
      * Constructor
@@ -58,6 +64,7 @@ class MailFrontService implements MailFrontServiceInterface
      *
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function __construct()
     {
@@ -71,10 +78,17 @@ class MailFrontService implements MailFrontServiceInterface
      * @return array
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getViewVarsForIndex(EntityInterface $mailContent, EntityInterface $mailMessage): array
     {
+        $error = false;
+        if ($mailMessage->getErrors()) {
+            $error = true;
+        }
+
         return [
+            'error' => $error,
             'freezed' => false,
             'mailContent' => $mailContent,
             'mailFields' => $this->getMailFields($mailContent->id),
@@ -90,6 +104,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @param Controller $controller
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function setupPreviewForIndex(Controller $controller): void
     {
@@ -118,6 +133,7 @@ class MailFrontService implements MailFrontServiceInterface
         ));
         $controller->set('title', $mailContent->content->title);
         $controller->viewBuilder()->setTemplate($this->getIndexTemplate($mailContent));
+        $controller->viewBuilder()->setClassName('BcMail.MailFrontApp');
     }
 
     /**
@@ -127,20 +143,13 @@ class MailFrontService implements MailFrontServiceInterface
      * @return array
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getViewVarsForConfirm(EntityInterface $mailContent, EntityInterface $mailMessage): array
     {
-        if (!$mailMessage->getErrors()) {
-            $freezed = true;
-            $error = false;
-        } else {
-            $freezed = false;
-            $error = true;
-        }
-
         return [
-            'error' => $error,
-            'freezed' => $freezed,
+            'error' => false,
+            'freezed' => true,
             'mailContent' => $mailContent,
             'mailFields' => $this->getMailFields($mailContent->id),
             'mailMessage' => $mailMessage,
@@ -154,6 +163,9 @@ class MailFrontService implements MailFrontServiceInterface
      * @param EntityInterface $mailContent
      * @param array $postData
      * @return EntityInterface
+     * @unitTest
+     * @checked
+     * @noTodo
      */
     public function confirm(EntityInterface $mailContent, array $postData): EntityInterface
     {
@@ -181,7 +193,11 @@ class MailFrontService implements MailFrontServiceInterface
             // フォームの初期化でエラーとなってしまう。そのため、source オプションで明示的にテーブルを指定する
             return new MailMessage($message->toArray(), ['source' => 'BcMail.MailMessages']);
         } else {
-            throw new PersistenceFailedException($message, __d('baser_core', 'エラー : 入力内容を確認して再度送信してください。'));
+            // 2023/10/16 by HungDV
+            // newEntity() だと配列が消えてしまうため、エンティティクラスで直接変換
+            $mailMessage = new MailMessage($postData, ['source' => 'BcMail.MailMessages']);
+            $mailMessage->setErrors($message->getErrors());
+            throw new PersistenceFailedException($mailMessage, __d('baser_core', 'エラー : 入力内容を確認して再度送信してください。'));
         }
     }
 
@@ -193,6 +209,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @throws \Throwable
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function sendMail(EntityInterface $mailContent, EntityInterface $mailMessage, array $sendEmailOptions)
     {
@@ -250,6 +267,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return string
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getAdminMail(EntityInterface $mailContent): string
     {
@@ -268,6 +286,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return string
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getUserMail(ResultSetInterface $mailFields, EntityInterface $mailMessage): string
     {
@@ -293,6 +312,9 @@ class MailFrontService implements MailFrontServiceInterface
      * @param Query $mailFields
      * @param EntityInterface $mailMessage
      * @return array
+     * @unitTest
+     * @checked
+     * @noTodo
      */
     public function getAttachments(ResultSetInterface $mailFields, EntityInterface $mailMessage): array
     {
@@ -320,6 +342,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return array
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function createMailData(
         EntityInterface $mailConfig,
@@ -332,7 +355,10 @@ class MailFrontService implements MailFrontServiceInterface
         /** @var MailMessagesService $mailMessagesService */
         $mailMessagesService = $this->getService(MailMessagesServiceInterface::class);
         $mailMessage = $mailMessagesService->MailMessages->convertToDb($mailFields, $mailMessage);
+        $siteService = $this->getService(SitesServiceInterface::class);
+        $site = $siteService->get($mailContent->content->site_id);
         return $mailMessagesService->MailMessages->convertDatasToMail([
+            'site' => $site,
             'message' => $mailMessage,
             'content' => $mailContent->content,
             'mailFields' => $mailFields,
@@ -350,6 +376,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return array
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getEditLink(int $mailContentId)
     {
@@ -384,6 +411,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return boolean
      * @checked
      * @noTodo
+     * @unitTest
      */
     private function _checkDirectoryRraversal(int $mailContentId, array $postData)
     {
@@ -412,6 +440,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return    bool
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function isAccepting(EntityInterface $mailContent): bool
     {
@@ -436,6 +465,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return string
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getIndexTemplate(EntityInterface $mailContent): string
     {
@@ -448,6 +478,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return string
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getConfirmTemplate(EntityInterface $mailContent): string
     {
@@ -460,6 +491,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return string
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getUnpublishTemplate(EntityInterface $mailContent): string
     {
@@ -472,6 +504,7 @@ class MailFrontService implements MailFrontServiceInterface
      * @return string
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getThanksTemplate(EntityInterface $mailContent): string
     {

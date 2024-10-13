@@ -33,7 +33,7 @@ class MailformHelper extends BcFreezeHelper
      *
      * @var array
      */
-    public $helpers = ['Html', 'BcTime', 'BcText', 'Js', 'BcUpload', 'BcCkeditor', 'BcBaser', 'BcContents', 'BcArray', 'Url'];
+    public array $helpers = ['Html', 'BcTime', 'BcText', 'Js', 'BcUpload', 'BcCkeditor', 'BcBaser', 'BcContents', 'BcArray', 'Url'];
 
     /**
      * メールフィールドのデータよりコントロールを生成する
@@ -238,6 +238,8 @@ class MailformHelper extends BcFreezeHelper
      * @param array $model
      * @param array $options
      * @return string
+     * @checked
+     * @noTodo
      */
     public function create($context = null, $options = []): string
     {
@@ -257,6 +259,9 @@ class MailformHelper extends BcFreezeHelper
      * @param array $options オプション（初期値 : []）
      *    - `separate` : 画像と入力欄の区切り（初期値：''）
      *    - `class` : CSSクラス名（初期値：auth-captcha-image）
+     * @return void
+     * @checked
+     * @noTodo
      */
     public function authCaptcha(string $fieldName, array $options = [])
     {
@@ -291,6 +296,8 @@ class MailformHelper extends BcFreezeHelper
      */
     public function getGroupValidErrors(ResultSetInterface $mailFields, string $groupValid, array $options = [], bool $distinct = true)
     {
+        // 呼び出し元のイテレーションに影響が出ないようにクローンを作成
+        $mailFields = clone $mailFields;
         $errors = [];
         foreach ($mailFields as $mailField) {
             if ($mailField->group_valid !== $groupValid) continue;
@@ -323,6 +330,8 @@ class MailformHelper extends BcFreezeHelper
      * @param ResultSet $mailFields
      * @param MailField $currentMailField
      * @return bool
+     * @checked
+     * @noTodo
      */
     public function isGroupLastField(ResultSet $mailFields, MailField $currentMailField)
     {

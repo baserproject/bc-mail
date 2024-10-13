@@ -18,6 +18,7 @@ use BcMail\Model\Entity\MailContent;
 use BcMail\Service\MailContentsService;
 use BcMail\Service\MailContentsServiceInterface;
 use BcMail\Service\MailMessagesService;
+use Cake\Datasource\Paging\PaginatedResultSet;
 use Cake\Http\ServerRequest;
 use Cake\ORM\ResultSet;
 
@@ -35,8 +36,9 @@ class MailMessagesAdminService extends MailMessagesService implements MailMessag
      * @return array
      * @checked
      * @noTodo
+     * @unitTest
      */
-    public function getViewVarsForIndex(int $mailContentId, ResultSet $mailMessages): array
+    public function getViewVarsForIndex(int $mailContentId, PaginatedResultSet|ResultSet $mailMessages): array
     {
         /** @var MailContentsService $mailContentsService */
         $mailContentsService = $this->getService(MailContentsServiceInterface::class);
@@ -57,6 +59,7 @@ class MailMessagesAdminService extends MailMessagesService implements MailMessag
      * @return array
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getViewVarsForView(int $mailContentId, int $mailMessageId)
     {
@@ -77,14 +80,17 @@ class MailMessagesAdminService extends MailMessagesService implements MailMessag
      * @param int $mailContentId
      * @param ServerRequest $request
      * @return array
+     * @unitTest
+     * @checked
+     * @noTodo
      */
     public function getViewVarsForDownloadCsv(int $mailContentId, ServerRequest $request)
     {
         $this->setup($mailContentId);
         return [
-            'encoding' => $request->getQuery('encoding')?? 'utf-8',
-            'messages' => $this->MailMessages->convertMessageToCsv($this->getIndex()),
-            'contentName' => $request->getAttribute('currentContent')->name,
+            'encoding' => $request->getQuery('encoding') ?? 'utf-8',
+            'messages' => $this->MailMessages->convertMessageToCsv($this->getIndex()->all()->toArray()),
+            'contentName' => $request->getAttribute('currentContent')?->name,
         ];
     }
 

@@ -14,13 +14,13 @@ namespace BcMail\Controller\Admin;
 use BaserCore\Error\BcException;
 use BaserCore\Service\ContentsService;
 use BaserCore\Service\ContentsServiceInterface;
+use BaserCore\Utility\BcFile;
+use BaserCore\Utility\BcFolder;
 use BcMail\Service\Admin\MailFieldsAdminService;
 use BcMail\Service\Admin\MailFieldsAdminServiceInterface;
 use BcMail\Service\MailFieldsService;
 use BcMail\Service\MailFieldsServiceInterface;
 use Cake\Event\EventInterface;
-use Cake\Filesystem\File;
-use Cake\Filesystem\Folder;
 use Cake\ORM\Exception\PersistenceFailedException;
 use Exception;
 use BaserCore\Annotation\NoTodo;
@@ -38,6 +38,7 @@ class MailFieldsController extends MailAdminAppController
      * @return void
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function initialize(): void
     {
@@ -51,10 +52,13 @@ class MailFieldsController extends MailAdminAppController
      * beforeFilter
      *
      * @return void
+     * @checked
+     * @noTodo
      */
     public function beforeFilter(EventInterface $event)
     {
-        parent::beforeFilter($event);
+        $response = parent::beforeFilter($event);
+        if($response) return $response;
         $this->_checkEnv();
 
         $mailContentId = $this->request->getParam('pass.0');
@@ -72,22 +76,26 @@ class MailFieldsController extends MailAdminAppController
 
     /**
      * プラグインの環境をチェックする
+     * @checked
+     * @noTodo
      */
     protected function _checkEnv()
     {
         $savePath = WWW_ROOT . 'files' . DS . "mail" . DS . 'limited';
         if (!is_dir($savePath)) {
-            $Folder = new Folder();
-            $Folder->create($savePath, 0777);
+            $Folder = new BcFolder($savePath);
+            $Folder->create();
             if (!is_dir($savePath)) {
                 $this->BcMessage->setError(
                     __d('baser_core', 'ファイルフィールドを利用している場合、フォームより送信したファイルフィールドのデータは公開された状態となっています。URLを直接閲覧すると参照できてしまいます。参照されないようにするためには、{0} に書き込み権限を与えてください。', WWW_ROOT . 'files/mail/')
                 );
             }
-            $File = new File($savePath . DS . '.htaccess');
+
+        }
+        if (!file_exists($savePath . DS . '.htaccess')) {
+            $File = new BcFile($savePath . DS . '.htaccess');
             $htaccess = "Order allow,deny\nDeny from all";
             $File->write($htaccess);
-            $File->close();
             if (!file_exists($savePath . DS . '.htaccess')) {
                 $this->BcMessage->setError(
                     __d('baser_core', 'ファイルフィールドを利用している場合、フォームより送信したファイルフィールドのデータは公開された状態となっています。URLを直接閲覧すると参照できてしまいます。参照されないようにするためには、{0} に書き込み権限を与えてください。', WWW_ROOT . 'files/mail/limited/')
@@ -103,6 +111,7 @@ class MailFieldsController extends MailAdminAppController
      * @return void
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function index(MailFieldsAdminServiceInterface $service, int $mailContentId)
     {
@@ -121,6 +130,7 @@ class MailFieldsController extends MailAdminAppController
      * @return void
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function add(MailFieldsAdminServiceInterface $service, int $mailContentId)
     {
@@ -167,6 +177,7 @@ class MailFieldsController extends MailAdminAppController
      * @return void
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function edit(MailFieldsAdminServiceInterface $service, int $mailContentId, int $id)
     {
@@ -214,12 +225,13 @@ class MailFieldsController extends MailAdminAppController
      * @throws \Throwable
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function delete(MailFieldsServiceInterface $service, int $mailContentId, int $id)
     {
         $this->request->allowMethod(['post', 'delete']);
-        $entity = $service->get($id);
         try {
+            $entity = $service->get($id);
             if($service->delete($id)) {
                 $this->BcMessage->setSuccess(__d('baser_core', 'メールフィールド「{0}」を削除しました。', $entity->name));
             } else {
@@ -240,6 +252,7 @@ class MailFieldsController extends MailAdminAppController
      * @return void
      * @checked
      * @noTodo
+     * @UnitTest
      */
     public function copy(MailFieldsServiceInterface $service, int $mailContentId, int $id)
     {
@@ -265,6 +278,7 @@ class MailFieldsController extends MailAdminAppController
      * @return void
      * @checked
      * @noTodo
+     * @UnitTest
      */
     public function unpublish(MailFieldsServiceInterface $service, int $mailContentId, int $id)
     {
@@ -287,6 +301,7 @@ class MailFieldsController extends MailAdminAppController
      * @param int $id
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function publish(MailFieldsServiceInterface $service, int $mailContentId, int $id)
     {

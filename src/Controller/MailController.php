@@ -27,6 +27,7 @@ use Cake\ORM\Exception\PersistenceFailedException;
 use BaserCore\Annotation\UnitTest;
 use BaserCore\Annotation\NoTodo;
 use BaserCore\Annotation\Checked;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * お問い合わせメールフォーム用コントローラー
@@ -47,7 +48,7 @@ class MailController extends MailFrontAppController
     public function initialize(): void
     {
         parent::initialize();
-        $this->loadComponent('BaserCore.BcFrontContents', ['viewContentCrumb' => true]);
+        $this->loadComponent('BaserCore.BcFrontContents');
     }
 
     /**
@@ -68,6 +69,7 @@ class MailController extends MailFrontAppController
      * beforeFilter.
      *
      * @return void
+     * @checked
      */
     public function beforeFilter(EventInterface $event)
     {
@@ -80,6 +82,7 @@ class MailController extends MailFrontAppController
         $mailMessagesService = $this->getService(MailMessagesServiceInterface::class);
         $mailMessagesService->MailMessages->setup($this->request->getParam('entityId'), $this->getRequest()->getData());
 
+        // TODO ucmitz 未確認
         return;
         $this->dbDatas['mailContent'] = $this->MailMessage->mailContent;
         $this->dbDatas['mailFields'] = $this->MailMessage->mailFields;
@@ -88,8 +91,7 @@ class MailController extends MailFrontAppController
         // 2013/03/14 ryuring
         // baserCMS２系より必須要件をPHP5以上とした為、SecurityComponent を標準で設定する方針に変更
         if (Configure::read('debug') > 0) {
-            $this->Security->validatePost = false;
-            $this->Security->csrfCheck = false;
+            $this->FormProtection->setConfig('validate', false);
         } else {
             // PHP4でセキュリティコンポーネントがうまくいかなかったので利用停止
             // 詳細はコンポーネント設定のコメントを参照
@@ -100,14 +102,7 @@ class MailController extends MailFrontAppController
                     $disabledFields[] = $field['MailField']['field_name'];
                 }
             }
-            $this->Security->requireAuth('confirm', 'submit');
-            $this->set('unlockedFields', array_merge($this->Security->unlockedFields, $disabledFields));
-
-            // SSL設定
-            if ($this->dbDatas['mailContent']['MailContent']['ssl_on']) {
-                $this->Security->blackHoleCallback = 'sslFail';
-                $this->Security->requireSecure = am($this->Security->requireSecure, ['index', 'confirm', 'submit']);
-            }
+            $this->set('unlockedFields', array_merge($this->FormProtection->getConfig('unlockedFields'), $disabledFields));
         }
     }
 
@@ -115,6 +110,7 @@ class MailController extends MailFrontAppController
      * beforeRender
      *
      * @return void
+     * @checked
      */
     public function beforeRender(EventInterface $event): void
     {
@@ -179,13 +175,16 @@ class MailController extends MailFrontAppController
     {
         $mailContent = $mailContentsService->get($this->request->getParam('entityId'));
         if (!$service->isAccepting($mailContent)) {
-            $this->render($service->getUnpublishTemplate($mailContent));
-            return;
+            return $this->render($service->getUnpublishTemplate($mailContent));
         }
 
-        if (!$this->getRequest()->getSession()->read('BcMail.valid') || !$this->getRequest()->is(['post', 'put'])) {
+        if (!$this->getRequest()->is(['post', 'put'])) {
+            return $this->redirect(['action' => 'index']);
+        }
+
+        if (!$this->getRequest()->getSession()->read('BcMail.valid')) {
             $this->BcMessage->setError(__d('baser_core', 'エラーが発生しました。もう一度操作してください。'));
-            $this->redirect($this->request->getParam('Content.url') . '/index');
+            return $this->redirect(['action' => 'index']);
         }
 
         try {
@@ -210,6 +209,8 @@ class MailController extends MailFrontAppController
         } catch (PersistenceFailedException $e) {
             $mailMessage = $e->getEntity();
             $this->BcMessage->setError($e->getMessage());
+            $this->set($service->getViewVarsForIndex($mailContent, $mailMessage));
+            return $this->render($service->getIndexTemplate($mailContent));
         } catch (BcException $e) {
             $this->BcMessage->setError($e->getMessage());
             if ($e->getCode() === 500) {
@@ -223,7 +224,10 @@ class MailController extends MailFrontAppController
     /**
      * [PUBIC] データ送信
      *
-     * @param mixed mail_content_id
+     * @param MailFrontServiceInterface|MailFrontService $service
+     * @param MailContentsServiceInterface $mailContentsService
+     * @param MailMessagesServiceInterface|MailMessagesService $mailMessagesService
+     * @param BcCaptchaServiceInterface $bcCaptchaService
      * @return void|Response
      * @checked
      * @noTodo
@@ -237,12 +241,16 @@ class MailController extends MailFrontAppController
     {
         $mailContent = $mailContentsService->get($this->request->getParam('entityId'));
         if (!$service->isAccepting($mailContent)) {
-            $this->render($service->getUnpublishTemplate($mailContent));
-            return;
+            return $this->render($service->getUnpublishTemplate($mailContent));
         }
-        if (!$this->getRequest()->getSession()->read('BcMail.valid') || !$this->getRequest()->is(['post', 'put'])) {
+
+        if (!$this->getRequest()->is(['post', 'put'])) {
+            return $this->redirect(['action' => 'index']);
+        }
+
+        if (!$this->getRequest()->getSession()->read('BcMail.valid')) {
             $this->BcMessage->setError(__d('baser_core', 'エラーが発生しました。もう一度操作してください。'));
-            $this->redirect($this->request->getParam('Content.url') . '/index');
+            return $this->redirect(['action' => 'index']);
         }
 
         if($this->getRequest()->getData('mode') === 'Back') {
@@ -251,8 +259,7 @@ class MailController extends MailFrontAppController
                 $mailContent,
                 new MailMessage($this->getRequest()->getData(), ['source' => 'BcMail.MailMessages'])
             ));
-            $this->render($service->getIndexTemplate($mailContent));
-            return;
+            return $this->render($service->getIndexTemplate($mailContent));
         }
 
         // メッセージ保存
@@ -275,11 +282,10 @@ class MailController extends MailFrontAppController
             $mailMessage->auth_captcha = '';
             $this->BcMessage->setError(__d('baser_core', '入力内容を確認し、再度送信してください。'));
             $this->set($service->getViewVarsForConfirm($mailContent, $entity));
-            $this->render($service->getConfirmTemplate($mailContent));
-            return;
+            return $this->render($service->getConfirmTemplate($mailContent));
         } catch (\Throwable $e) {
             $this->BcMessage->setError(__d('baser_core', 'エラー : 送信中にエラーが発生しました。しばらくたってから再度送信お願いします。') . $e->getMessage());
-            return $this->redirect($this->request->getAttribute('currentContent')->url . '/index');
+            return $this->redirect($this->request->getAttribute('currentContent')->url . '/');
         }
 
         // EVENT Mail.beforeSendEmail
@@ -298,7 +304,7 @@ class MailController extends MailFrontAppController
             $this->getRequest()->getSession()->delete('BcMail.valid');
         } catch (\Throwable $e) {
             $this->BcMessage->setError(__d('baser_core', 'エラー : 送信中にエラーが発生しました。しばらくたってから再度送信お願いします。') . $e->getMessage());
-            return $this->redirect($this->request->getAttribute('currentContent')->url . '/index');
+            return $this->redirect($this->request->getAttribute('currentContent')->url . '/');
         }
 
         // EVENT Mail.afterSendEmail
@@ -313,14 +319,17 @@ class MailController extends MailFrontAppController
     /**
      * [PUBIC] メール送信完了
      *
-     * @return void
+     * @param MailFrontServiceInterface $service
+     * @param MailContentsServiceInterface $mailContentsService
+     * @return void|ResponseInterface
+     * @checked
+     * @noTodo
      */
     public function thanks(MailFrontServiceInterface $service, MailContentsServiceInterface $mailContentsService)
     {
         $mailContent = $mailContentsService->get($this->request->getParam('entityId'));
         if (!$service->isAccepting($mailContent)) {
-            $this->render($service->getUnpublishTemplate($mailContent));
-            return;
+            return $this->render($service->getUnpublishTemplate($mailContent));
         }
 
         $mailContent = $this->getRequest()->getSession()->consume('BcMail.MailContent');
@@ -336,7 +345,11 @@ class MailController extends MailFrontAppController
     /**
      * 認証用のキャプチャ画像を表示する
      *
+     * @param BcCaptchaServiceInterface $service
+     * @param string $token
      * @return void
+     * @checked
+     * @noTodo
      */
     public function captcha(BcCaptchaServiceInterface $service, string $token)
     {

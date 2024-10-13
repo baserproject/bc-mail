@@ -38,6 +38,7 @@ class MailFieldsController extends BcAdminApiController
      * @param MailFieldsService $service
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function batch(MailFieldsServiceInterface $service)
     {
@@ -80,6 +81,7 @@ class MailFieldsController extends BcAdminApiController
      * @return bool|void
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function update_sort(MailFieldsServiceInterface $service, int $mailContentId)
     {
@@ -187,9 +189,9 @@ class MailFieldsController extends BcAdminApiController
      */
     public function list(MailFieldsServiceInterface $service, int $mailContentId)
     {
-        $mailField = $message = null;
+        $mailFields = $message = null;
         try {
-            $mailField = $service->getList($mailContentId);
+            $mailFields = $service->getList($mailContentId);
         } catch (RecordNotFoundException $e) {
             $this->setResponse($this->response->withStatus(404));
             $message = __d('baser_core', 'データが見つかりません。');
@@ -199,10 +201,10 @@ class MailFieldsController extends BcAdminApiController
         }
 
         $this->set([
-            'mailField' => $mailField,
+            'mailFields' => $mailFields,
             'message' => $message
         ]);
-        $this->viewBuilder()->setOption('serialize', ['mailField', 'message']);
+        $this->viewBuilder()->setOption('serialize', ['mailFields', 'message']);
     }
 
     /**

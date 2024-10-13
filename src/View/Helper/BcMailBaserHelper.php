@@ -13,6 +13,9 @@ namespace BcMail\View\Helper;
 
 use BaserCore\View\Helper\BcPluginBaserHelperInterface;
 use Cake\View\Helper;
+use BaserCore\Annotation\NoTodo;
+use BaserCore\Annotation\Checked;
+use BaserCore\Annotation\UnitTest;
 
 /**
  * MailBaserHelper
@@ -26,7 +29,7 @@ class BcMailBaserHelper extends Helper implements BcPluginBaserHelperInterface
      * ヘルパー
      * @var array
      */
-    public $helpers = [
+    public array $helpers = [
         'BcMail.Mail',
         'BcMail.Mailform'
     ];
@@ -35,6 +38,9 @@ class BcMailBaserHelper extends Helper implements BcPluginBaserHelperInterface
      * メソッド一覧取得
      *
      * @return array[]
+     * @checked
+     * @noTodo
+     * @unitTest
      */
     public function methods(): array
     {

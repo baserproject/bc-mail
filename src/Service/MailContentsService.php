@@ -20,6 +20,7 @@ use BaserCore\Utility\BcUtil;
 use BcMail\Model\Table\MailContentsTable;
 use Cake\Datasource\EntityInterface;
 use Cake\ORM\Query;
+use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 
 /**
@@ -33,6 +34,12 @@ class MailContentsService implements MailContentsServiceInterface
      * Trait
      */
     use BcContainerTrait;
+
+    /**
+     * MailContentsTable
+     * @var MailContentsTable|Table
+     */
+    public MailContentsTable|Table $MailContents;
 
     /**
      * Construct
@@ -52,6 +59,7 @@ class MailContentsService implements MailContentsServiceInterface
      * @return EntityInterface
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getNew()
     {
@@ -78,6 +86,7 @@ class MailContentsService implements MailContentsServiceInterface
      * @throws \Cake\ORM\Exception\PersistenceFailedException
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function create(array $postData, $options = []): ?EntityInterface
     {
@@ -108,6 +117,7 @@ class MailContentsService implements MailContentsServiceInterface
      * @return EntityInterface|null
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function update(EntityInterface $entity, array $postData): ?EntityInterface
     {
@@ -129,6 +139,7 @@ class MailContentsService implements MailContentsServiceInterface
      * @return bool
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function delete(int $id): bool
     {
@@ -153,6 +164,7 @@ class MailContentsService implements MailContentsServiceInterface
      * @return EntityInterface
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function get(int $id, array $options = [])
     {
@@ -162,7 +174,7 @@ class MailContentsService implements MailContentsServiceInterface
                 'MailFields'
             ]
         ], $options);
-        return $this->MailContents->get($id, ['contain' => $options['contain']]);
+        return $this->MailContents->get($id, contain: $options['contain']);
     }
 
     /**
@@ -171,6 +183,7 @@ class MailContentsService implements MailContentsServiceInterface
      * @return Query
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function getIndex(array $queryParams = []): Query
     {
@@ -214,6 +227,7 @@ class MailContentsService implements MailContentsServiceInterface
      * @checked
      * @noTodo
      * @checked
+     * @unitTest
      */
     public function getList()
     {
@@ -230,6 +244,7 @@ class MailContentsService implements MailContentsServiceInterface
      * @return EntityInterface $result
      * @checked
      * @unitTest
+     * @noTodo
      */
     public function copy($postData)
     {
@@ -247,6 +262,9 @@ class MailContentsService implements MailContentsServiceInterface
      *
      * @param int|null $siteId
      * @return \Cake\Datasource\ResultSetInterface
+     * @unitTest
+     * @checked
+     * @noTodo
      */
     public function getPublishedAll(int $siteId = null)
     {
