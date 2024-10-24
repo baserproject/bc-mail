@@ -25,7 +25,6 @@ use BaserCore\Annotation\Checked;
  *
  * @property BcBaserHelper $BcBaser
  */
-#[\AllowDynamicProperties]
 class MailformHelper extends BcFreezeHelper
 {
 
@@ -34,18 +33,7 @@ class MailformHelper extends BcFreezeHelper
      *
      * @var array
      */
-    public array $helpers = [
-        'Html',
-        'BaserCore.BcTime',
-        'BaserCore.BcText',
-        'Js',
-        'BaserCore.BcUpload',
-        'BaserCore.BcCkeditor',
-        'BaserCore.BcBaser',
-        'BaserCore.BcContents',
-        'BaserCore.BcArray',
-        'Url'
-    ];
+    public $helpers = ['Html', 'BcTime', 'BcText', 'Js', 'BcUpload', 'BcCkeditor', 'BcBaser', 'BcContents', 'BcArray', 'Url'];
 
     /**
      * メールフィールドのデータよりコントロールを生成する
@@ -344,7 +332,6 @@ class MailformHelper extends BcFreezeHelper
      * @return bool
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function isGroupLastField(ResultSet $mailFields, MailField $currentMailField)
     {

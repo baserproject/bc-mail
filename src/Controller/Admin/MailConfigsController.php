@@ -29,7 +29,6 @@ class MailConfigsController extends MailAdminAppController
      * @return void|ResponseInterface
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function index(MailConfigsServiceInterface $service)
     {

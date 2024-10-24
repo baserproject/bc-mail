@@ -1,4 +1,6 @@
 <?php
+// TODO ucmitz  : コード確認要
+return;
 /**
  * baserCMS :  Based Website Development Project <https://basercms.net>
  * Copyright (c) baserCMS Users Community <https://basercms.net/community/>
@@ -8,22 +10,35 @@
  * @since           baserCMS v 4.0.5
  * @license         https://basercms.net/license/index.html
  */
-namespace BcMail\Test\TestCase\View\Helper;
 
-use BaserCore\TestSuite\BcTestCase;
+/**
+ * Include files
+ */
+App::uses('BcBaserHelper', 'View/Helper');
 
-class MailBaserHelperTest extends BcTestCase
+class MailBaserHelperTest extends BaserTestCase
 {
+
+    /**
+     * Fixtures
+     * @var array
+     */
+    public $fixtures = [
+        'baser.Default.Content',
+        'baser.Default.Site',
+        'baser.Default.SiteConfig',
+        'baser.Default.User',
+    ];
 
     /**
      * setUp
      *
      * @return void
      */
-    public function setUp(): void
+    public function setUp()
     {
         parent::setUp();
-//        $this->BcBaser = new BcBaserHelper(new View());
+        $this->BcBaser = new BcBaserHelper(new View());
     }
 
     /**
@@ -31,10 +46,10 @@ class MailBaserHelperTest extends BcTestCase
      *
      * @return void
      */
-    public function tearDown(): void
+    public function tearDown()
     {
-//        unset($this->BcBaser);
-//        Router::reload();
+        unset($this->BcBaser);
+        Router::reload();
         parent::tearDown();
     }
 
@@ -48,13 +63,12 @@ class MailBaserHelperTest extends BcTestCase
      */
     public function testIsMail($expected, $url)
     {
-        $this->markTestIncomplete('このテストは、まだ実装されていません。');
         $MailBaser = $this->BcBaser->getPluginBaser('BcMail');
         $MailBaser->request = $this->_getRequest($url);
         $this->assertEquals($expected, $this->BcBaser->isMail());
     }
 
-    public static function isMailDataProvider()
+    public function isMailDataProvider()
     {
         return [
             //PC

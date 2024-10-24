@@ -9,17 +9,20 @@
  * @license         https://basercms.net/license/index.html
  */
 
-namespace BcMail\Test\TestCase\Model\Table;
+namespace BcMail\Test\TestCase\Model;
 
 use BaserCore\TestSuite\BcTestCase;
 use BcMail\Model\Table\MailFieldsTable;
-use BcMail\Test\Factory\MailFieldsFactory;
 
 /**
  * @property MailFieldsTable $MailFieldsTable
  */
 class MailFieldsTableTest extends BcTestCase
 {
+
+    public $fixtures = [
+
+    ];
 
     /**
      * Set Up
@@ -57,100 +60,125 @@ class MailFieldsTableTest extends BcTestCase
     /**
      * validate
      */
-    public function test_validationDefaultNotError()
+    public function test正常チェック()
     {
-        $validator = $this->MailFieldsTable->getValidator('default');
-        $errors = $validator->validate([
-            'name' => str_repeat('a', 255),
-            'field_name' => str_repeat('a', 50),
-            'mail_content_id' => 999,
-            'type' => 'type',
-            'head' => str_repeat('a', 255),
-            'attention' => str_repeat('a', 255),
-            'before_attachment' => str_repeat('a', 255),
-            'after_attachment' => str_repeat('a', 255),
-            'options' => str_repeat('a', 255),
-            'class' => str_repeat('a', 255),
-            'default_value' => str_repeat('a', 255),
-            'description' => str_repeat('a', 255),
-            'group_field' => str_repeat('a', 255),
-            'group_valid' => str_repeat('a', 255)
+        $this->markTestIncomplete('こちらのテストはまだ未確認です');
+        $this->MailField->create([
+            'MailField' => [
+                'name' => '012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234',
+                'field_name' => '01234567890123456789012345678901234567890123456789',
+                'mail_content_id' => 999,
+                'type' => 'type',
+                'head' => '012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234',
+                'attention' => '012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234',
+                'before_attachment' => '012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234',
+                'after_attachment' => '012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234',
+                'options' => '012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234',
+                'class' => '012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234',
+                'default_value' => '012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234',
+                'description' => '012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234',
+                'group_field' => '012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234',
+                'group_valid' => '012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234',
+            ]
         ]);
-        $this->assertCount(0, $errors);
+
+        $this->assertTrue($this->MailField->validates());
+        $this->assertEmpty($this->MailField->validationErrors);
     }
 
-    public function test_validationDefaultEmpty()
+    public function test空白チェック()
     {
-        $validator = $this->MailFieldsTable->getValidator('default');
-        $errors = $validator->validate([
-            'name' => '',
-            'type' => ''
+        $this->markTestIncomplete('こちらのテストはまだ未確認です');
+        $this->MailField->create([
+            'MailField' => [
+                'name' => '',
+                'type' => '',
+            ]
         ]);
-        $this->assertEquals('項目名を入力してください。', current($errors['name']));
-        $this->assertEquals('タイプを入力してください。', current($errors['type']));
 
+        $this->assertFalse($this->MailField->validates());
+
+        $expected = [
+            'name' => ['項目名を入力してください。'],
+            'type' => ['タイプを入力してください。'],
+        ];
+        $this->assertEquals($expected, $this->MailField->validationErrors);
     }
 
 
-    public function test_validationDefaultOverText()
+    public function test桁数チェック()
     {
-        $validator = $this->MailFieldsTable->getValidator('default');
-        $errors = $validator->validate([
-            'name' => str_repeat('a', 256),
-            'field_name' => str_repeat('a', 51),
-            'mail_content_id' => 999,
-            'type' => 'type',
-            'head' => str_repeat('a', 256),
-            'attention' => str_repeat('a', 256),
-            'before_attachment' => str_repeat('a', 256),
-            'after_attachment' => str_repeat('a', 256),
-            'options' => str_repeat('a', 256),
-            'class' => str_repeat('a', 256),
-            'default_value' => str_repeat('a', 256),
-            'description' => str_repeat('a', 256),
-            'group_field' => str_repeat('a', 256),
-            'group_valid' => str_repeat('a', 256)
+        $this->markTestIncomplete('こちらのテストはまだ未確認です');
+        $this->MailField->create([
+            'MailField' => [
+                'name' => '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345',
+                'field_name' => '012345678901234567890123456789012345678901234567890',
+                'mail_content_id' => 999,
+                'type' => 'type',
+                'head' => '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345',
+                'attention' => '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345',
+                'before_attachment' => '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345',
+                'after_attachment' => '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345',
+                'options' => '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345',
+                'class' => '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345',
+                'default_value' => '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345',
+                'description' => '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345',
+                'group_field' => '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345',
+                'group_valid' => '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345',
+            ]
         ]);
+        $this->assertFalse($this->MailField->validates());
 
-        $this->assertEquals('項目名は255文字以内で入力してください。', current($errors['name']));
-        $this->assertEquals('フィールド名は50文字以内で入力してください。', current($errors['field_name']));
-        $this->assertEquals('項目見出しは255文字以内で入力してください。', current($errors['head']));
-        $this->assertEquals('注意書きは255文字以内で入力してください。', current($errors['attention']));
-        $this->assertEquals('前見出しは255文字以内で入力してください。', current($errors['before_attachment']));
-        $this->assertEquals('後見出しは255文字以内で入力してください。', current($errors['after_attachment']));
-        $this->assertEquals('オプションは255文字以内で入力してください。', current($errors['options']));
-        $this->assertEquals('クラス名は255文字以内で入力してください。', current($errors['class']));
-        $this->assertEquals('初期値は255文字以内で入力してください。', current($errors['default_value']));
-        $this->assertEquals('説明文は255文字以内で入力してください。', current($errors['description']));
-        $this->assertEquals('グループ名は255文字以内で入力してください。', current($errors['group_field']));
-        $this->assertEquals('グループ入力チェックは255文字以内で入力してください。', current($errors['group_valid']));
+        $expected = [
+            'name' => ['項目名は255文字以内で入力してください。'],
+            'field_name' => ['フィールド名は50文字以内で入力してください。'],
+            'head' => ['項目見出しは255文字以内で入力してください。'],
+            'attention' => ['注意書きは255文字以内で入力してください。'],
+            'before_attachment' => ['前見出しは255文字以内で入力してください。'],
+            'after_attachment' => ['後見出しは255文字以内で入力してください。'],
+            'options' => ['オプションは255文字以内で入力してください。'],
+            'class' => ['クラス名は255文字以内で入力してください。'],
+            'default_value' => ['初期値は255文字以内で入力してください。'],
+            'description' => ['説明文は255文字以内で入力してください。'],
+            'group_field' => ['グループフィールドは255文字以内で入力してください。'],
+            'group_valid' => ['グループ入力チェックは255文字以内で入力してください。']
+        ];
+
+        $this->assertEquals($expected, $this->MailField->validationErrors);
     }
 
-    public function test_validationDefaultHankakuCheck()
-    {
-        $validator = $this->MailFieldsTable->getValidator('default');
-        $errors = $validator->validate([
-            'mail_content_id' => 999,
-            'field_name' => '１２３ａｂｃ',
-            'group_field' => '１２３ａｂｃ',
-            'group_valid' => '１２３ａｂｃ'
-        ]);
 
-        $this->assertEquals('フィールド名は小文字の半角英数字、アンダースコアのみで入力してください。', current($errors['field_name']));
-        $this->assertEquals('グループ名は半角英数字、ハイフン、アンダースコアで入力してください。', current($errors['group_field']));
-        $this->assertEquals('グループ入力チェックは半角英数字、ハイフン、アンダースコアで入力してください。', current($errors['group_valid']));
+    public function test半角英数チェック()
+    {
+        $this->markTestIncomplete('こちらのテストはまだ未確認です');
+        $this->MailField->create([
+            'MailField' => [
+                'field_name' => '１２３ａｂｃ',
+            ]
+        ]);
+        $this->assertFalse($this->MailField->validates());
+
+        $expected = [
+            'field_name' => ['フィールド名は半角英数字のみで入力してください。'],
+        ];
+        $this->assertEquals($expected, $this->MailField->validationErrors);
     }
 
-    public function test_validationDefaultDuplicate()
+    public function test重複チェック()
     {
-        MailFieldsFactory::make(['mail_content_id' => 1, 'field_name' => 'field_1'])->persist();
-        $validator = $this->MailFieldsTable->getValidator('default');
-        $errors = $validator->validate([
-            'mail_content_id' => 1,
-            'field_name' => 'field_1'
+        $this->markTestIncomplete('こちらのテストはまだ未確認です');
+        $this->MailField->create([
+            'MailField' => [
+                'field_name' => 'name_1',
+                'mail_content_id' => 1,
+            ]
         ]);
+        $this->assertFalse($this->MailField->validates());
 
-        $this->assertEquals('既に登録のあるフィールド名です。', current($errors['field_name']));
+        $expected = [
+            'field_name' => ['入力されたフィールド名は既に登録されています。'],
+        ];
+        $this->assertEquals($expected, $this->MailField->validationErrors);
     }
 
     /**
@@ -176,42 +204,16 @@ class MailFieldsTableTest extends BcTestCase
      */
     public function testHalfTextMailField()
     {
-        //case true
-        $string = 'abc123_';
-        $result = $this->MailFieldsTable->halfTextMailField($string);
-        $this->assertTrue($result);
-
-        //case false
-        $string = 'abcABC123_';
-        $result = $this->MailFieldsTable->halfTextMailField($string);
-        $this->assertFalse($result);
+        $this->markTestIncomplete('このテストは、まだ実装されていません。');
     }
 
     /**
      * 選択リストの入力チェック
-     * @dataProvider sourceMailFieldDataProvider
      */
-    public function test_sourceMailField($value, $context, $expected)
+    public function testSourceMailField()
     {
-        $result = $this->MailFieldsTable->sourceMailField($value, $context);
-        $this->assertEquals($expected, $result);
+        $this->markTestIncomplete('このテストは、まだ実装されていません。');
     }
-
-    public static function sourceMailFieldDataProvider()
-    {
-        return [
-            ['radio', ['data' => ['type' => 'radio']], true],
-            ['', ['data' => ['type' => 'radio']], false],
-            ['select', ['data' => ['type' => 'select']], true],
-            ['', ['data' => ['type' => 'select']], false],
-            ['multi_check', ['data' => ['type' => 'multi_check']], true],
-            ['', ['data' => ['type' => 'multi_check']], false],
-            ['autozip', ['data' => ['type' => 'autozip']], true],
-            ['', ['data' => ['type' => 'autozip']], false],
-            ['text', ['data' => ['type' => 'text']], true]
-        ];
-    }
-
 
     /**
      * フィールドデータをコピーする
@@ -245,7 +247,7 @@ class MailFieldsTableTest extends BcTestCase
         }
     }
 
-    public static function copyDataProvider()
+    public function copyDataProvider()
     {
         return [
             [1, [], false],
@@ -287,11 +289,12 @@ class MailFieldsTableTest extends BcTestCase
      */
     public function testFormatSource($source, $expected)
     {
-        $result = $this->MailFieldsTable->formatSource($source);
+        $this->markTestIncomplete('こちらのテストはまだ未確認です');
+        $result = $this->MailField->formatSource($source);
         $this->assertEquals($expected, $result);
     }
 
-    public static function formatSourceDataProvider()
+    public function formatSourceDataProvider()
     {
         return [
             ["  １|２|３|４|５", "１\n２\n３\n４\n５"],

@@ -20,7 +20,6 @@ use Cake\Datasource\EntityInterface;
 use Cake\Datasource\ResultSetInterface;
 use Cake\Event\Event;
 use Cake\ORM\Query;
-use Cake\ORM\Query\SelectQuery;
 use Cake\ORM\ResultSet;
 use Cake\ORM\TableRegistry;
 use BaserCore\Annotation\UnitTest;
@@ -58,7 +57,6 @@ class MailMessagesTable extends MailAppTable
      * @return void
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function initialize(array $config): void
     {
@@ -135,7 +133,6 @@ class MailMessagesTable extends MailAppTable
      * @param $mailContentId
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function setUseTable($mailContentId)
     {
@@ -145,15 +142,18 @@ class MailMessagesTable extends MailAppTable
     /**
      * テーブル名を生成する
      * int型でなかったら強制終了
-     * @param int $mailContentId
-     * @return string The table name
+     * @param $mailContentId
+     * @return string
      * @checked
      * @noTodo
-     * @unitTest
      */
-    public function createTableName(int $mailContentId): string
+    public function createTableName($mailContentId)
     {
-        return $this->addPrefix("mail_message_{$mailContentId}");
+        $mailContentId = (int)$mailContentId;
+        if (!is_int($mailContentId)) {
+            throw new BcException(__d('baser_core', 'MailMessageService::createTableName() の引数 $mailContentId は int 型しか受けつけていません。'));
+        }
+        return $this->addPrefix('mail_message_' . $mailContentId);
     }
 
     /**
@@ -509,7 +509,6 @@ class MailMessagesTable extends MailAppTable
      * @checked
      * @noTodo
      * @TODO ヘルパー化すべきかも
-     * @unitTest
      */
     public function convertDatasToMail($data, $options)
     {
@@ -550,9 +549,6 @@ class MailMessagesTable extends MailAppTable
      *
      * @param $mailContentId
      * @return string
-     * @checked
-     * @noTodo
-     * @unitTest
      */
     public function createFullTableName($mailContentId)
     {
@@ -566,7 +562,6 @@ class MailMessagesTable extends MailAppTable
      * @return array
      * @checked
      * @noTodo
-     * @unitTest
      */
     public function convertMessageToCsv(array $messages)
     {
@@ -603,7 +598,7 @@ class MailMessagesTable extends MailAppTable
 
         // メール受信テーブルの作成
         $MailContent = ClassRegistry::init('BcMail.MailContent');
-        $contents = $MailContent->find('all', ...['recursive' => -1]);
+        $contents = $MailContent->find('all', ['recursive' => -1]);
 
         $result = true;
         foreach($contents as $content) {
@@ -622,12 +617,12 @@ class MailMessagesTable extends MailAppTable
      * find
      *
      * @param String $type
-     * @param mixed $args
-     * @return SelectQuery
+     * @param mixed $query
+     * @return Array
      */
-    public function find(string $type = 'all', mixed ...$args): SelectQuery
+    public function find(string $type = 'all', array $options = []): Query
     {
-        return parent::find($type, ...$args);
+        return parent::find($type, $options);
         // TODO ucmitz 以下、未検証
         // テーブルを共用しているため、環境によってはデータ取得に失敗する。
         // その原因のキャッシュメソッドをfalseに設定。
