@@ -35,12 +35,13 @@ class MailFrontEmailView extends BcFrontEmailView
      * initialize
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function initialize(): void
     {
         parent::initialize();
-        $this->loadHelper('BcMail.Mailfield');
-        $this->loadHelper('BcMail.Maildata');
+        $this->addHelper('BcMail.Mailfield');
+        $this->addHelper('BcMail.Maildata');
     }
 
 }

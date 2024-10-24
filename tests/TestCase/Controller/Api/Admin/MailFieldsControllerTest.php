@@ -208,8 +208,8 @@ class MailFieldsControllerTest extends BcTestCase
         $this->assertNotNull($result->mailField);
         $this->assertEquals($result->message, 'メールフィールド「性」をコピーしました。');
         //メールフィルドがコピーできるか確認
-        $mailField = $MailFieldsService->getIndex(1)->last();
-        $this->assertEquals('性_copy', $mailField->name);
+        $mailFields = $MailFieldsService->getIndex(1)->toArray();
+        $this->assertEquals('性_copy', $mailFields[count($mailFields) - 1]['name']);
 
         //不要テーブルを削除
         $MailMessagesService->dropTable(1);
@@ -270,5 +270,24 @@ class MailFieldsControllerTest extends BcTestCase
         // 戻る値を確認
         $result = json_decode((string)$this->_response->getBody());
         $this->assertEquals($result->message, 'メールフィールド「性」の並び替えを更新しました。');
+    }
+
+    /**
+     * test view
+     */
+    public function testView()
+    {
+        //Create data
+        $this->loadFixtureScenario(MailFieldsScenario::class);
+        $this->loadFixtureScenario(MailContentsScenario::class);
+
+        $this->get("/baser/api/admin/bc-mail/mail_fields/view/1.json?token=" . $this->accessToken);
+        $this->assertResponseOk();
+
+        //Check the return value
+        $result = json_decode((string)$this->_response->getBody());
+        $this->assertEquals('性', $result->mailField->name);
+        $this->assertEquals('お名前', $result->mailField->head);
+        $this->assertEquals('text', $result->mailField->type);
     }
 }

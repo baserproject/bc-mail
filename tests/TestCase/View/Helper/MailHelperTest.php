@@ -1,6 +1,4 @@
 <?php
-// TODO ucmitz  : コード確認要
-return;
 /**
  * baserCMS :  Based Website Development Project <https://basercms.net>
  * Copyright (c) baserCMS Users Community <https://basercms.net/community/>
@@ -10,52 +8,36 @@ return;
  * @since           baserCMS v 4.0.3
  * @license         https://basercms.net/license/index.html
  */
-
-App::uses('MailHelper', 'BcMail.View/Helper');
-App::uses('BcBaserHelper', 'View/Helper');
-App::uses('BcAppView', 'View');
+namespace BcMail\Test\TestCase\View\Helper;
+use BaserCore\Test\Factory\ContentFactory;
+use BaserCore\TestSuite\BcTestCase;
+use BcMail\Model\Entity\MailContent;
+use BcMail\View\Helper\MailHelper;
+use Cake\ORM\Entity;
+use Cake\View\View;
 
 /**
  * Class MailHelperTest
  *
  * @property MailHelper $Mail
  */
-class MailHelperTest extends BaserTestCase
+class MailHelperTest extends BcTestCase
 {
-
-    /**
-     * Fixture
-     *
-     * @var array
-     */
-    public $fixtures = [
-        'baser.Default.Content',
-        'baser.Default.Site',
-        'baser.Default.User',
-        'baser.Default.SiteConfig',
-        'plugin.Mail.Default/MailContent',
-        'plugin.Mail.Default/MailField',
-        'plugin.Mail.Default/MailMessage',
-        'plugin.Mail.Default/MailConfig'
-    ];
-
     /**
      * set up
      */
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
-        $this->View = new BcAppView(null);
-        $this->View->request = $this->_getRequest('/');
-        $this->Mail = new MailHelper($this->View);
+        $this->MailHelper = new MailHelper(new View());
     }
 
     /**
      * tear down
      */
-    public function tearDown()
+    public function tearDown(): void
     {
-        unset($this->Mail);
+//        unset($this->Mail);
         parent::tearDown();
     }
 
@@ -72,6 +54,7 @@ class MailHelperTest extends BaserTestCase
      */
     public function testGetDescription()
     {
+        $this->markTestIncomplete('このテストは、まだ実装されていません。');
         ClassRegistry::flush();
         $this->Mail->setMailContent(1);
         $expected = '<p><span style="color:#C30">*</span> 印の項目は必須となりますので、必ず入力してください。</p>';
@@ -81,12 +64,33 @@ class MailHelperTest extends BaserTestCase
 
     /**
      * 説明文の存在確認
+     * @param $description
+     * @param $expected
+     * @dataProvider descriptionExistsProvider
      */
-    public function testDescriptionExists()
+    public function testDescriptionExists($description, $expected)
     {
-        $this->Mail->setMailContent(1);
-        $result = $this->Mail->descriptionExists();
-        $this->assertTrue($result, "メールの説明文が指定されていません。");
+        //setUp
+        $mailContent = new Entity([
+            'description' => $description
+        ]);
+        $this->MailHelper->currentMailContent = $mailContent;
+
+        $result = $this->MailHelper->descriptionExists();
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public static function descriptionExistsProvider()
+    {
+        return [
+            ['This is a test description', true],
+            ['', false],
+            [null, false],
+            ['0', false],
+            ['   ', true],
+            ['<p>This is a <strong>HTML</strong> description</p>', true],
+        ];
     }
 
     /**
@@ -94,6 +98,7 @@ class MailHelperTest extends BaserTestCase
      */
     public function testGetForm()
     {
+        $this->markTestIncomplete('このテストは、まだ実装されていません。');
         $MailMessage = ClassRegistry::init('BcMail.MailMessage');
         $MailMessage->createTable(1);
         ClassRegistry::flush();
@@ -107,6 +112,7 @@ class MailHelperTest extends BaserTestCase
      */
     public function testGetFormTemplates()
     {
+        $this->markTestIncomplete('このテストは、まだ実装されていません。');
         $View = new View(null);
         $View->set('siteConfig', Configure::read('BcSite'));
         $this->Mail->BcBaser = new BcBaserHelper($View);
@@ -123,6 +129,7 @@ class MailHelperTest extends BaserTestCase
      */
     public function testGetMailTemplates()
     {
+        $this->markTestIncomplete('このテストは、まだ実装されていません。');
         $View = new View(null);
         $View->set('siteConfig', Configure::read('BcSite'));
         $this->Mail->BcBaser = new BcBaserHelper($View);
@@ -142,6 +149,7 @@ class MailHelperTest extends BaserTestCase
      */
     public function testGetToken()
     {
+        $this->markTestIncomplete('このテストは、まだ実装されていません。');
         $result = $this->Mail->getToken();
         $expected = '/<script.*<\/script>.*/s';
         $this->assertMatchesRegularExpression($expected, $result, 'スクリプトが取得できません。');
@@ -153,11 +161,12 @@ class MailHelperTest extends BaserTestCase
      */
     public function testLink($title, $contentsName, $expected)
     {
+        $this->markTestIncomplete('このテストは、まだ実装されていません。');
         $this->expectOutputString($expected);
         $this->Mail->link($title, $contentsName, $datas = [], $options = []);
     }
 
-    public function linkProvider()
+    public static function linkProvider()
     {
         return [
             ['タイトル', 'Members', '<a href="/Members">タイトル</a>'],
@@ -178,12 +187,13 @@ class MailHelperTest extends BaserTestCase
      */
     public function testSetMailContent($id, $expect)
     {
+        $this->markTestIncomplete('このテストは、まだ実装されていません。');
         unset($this->Mail->mailContent);
         $this->Mail->setMailContent($id);
         $this->assertEquals((bool)($this->Mail->mailContent), $expect);
     }
 
-    public function setMailContentDataProvider()
+    public static function setMailContentDataProvider()
     {
         return [
             [1, true],
@@ -205,5 +215,55 @@ class MailHelperTest extends BaserTestCase
     public function testBeforeRender()
     {
         $this->markTestIncomplete('このテストは、まだ実装されていません。');
+    }
+
+    /**
+     * test descriptionExists
+     */
+    public function test_descriptionExists()
+    {
+        $mailContent = new MailContent();
+        $mailContent->description = 'test description';
+
+        //with description
+        $this->MailHelper->currentMailContent = $mailContent;
+        $rs = $this->MailHelper->descriptionExists();
+        $this->assertTrue($rs);
+
+        //with empty description
+        $mailContent->description = '';
+        $this->MailHelper->currentMailContent = $mailContent;
+        $rs = $this->MailHelper->descriptionExists();
+        $this->assertFalse($rs);
+    }
+
+    /**
+     * test testGetDescription
+     */
+    public function test_getDescription()
+    {
+        $mailContent = new MailContent();
+        $mailContent->description = 'test description';
+
+        $this->MailHelper->currentMailContent = $mailContent;
+
+        $rs = $this->MailHelper->getDescription();
+        $this->assertEquals('test description', $rs);
+    }
+
+    /**
+     * test isMail
+     */
+    public function test_isMail()
+    {
+        //no content
+        $result = $this->MailHelper->isMail();
+        $this->assertFalse($result);
+
+        //with content
+        $content = ContentFactory::make(['plugin' => 'BcMail'])->getEntity();
+        $this->MailHelper->getView()->setRequest($this->getRequest()->withAttribute('currentContent', $content));
+        $result = $this->MailHelper->isMail();
+        $this->assertTrue($result);
     }
 }

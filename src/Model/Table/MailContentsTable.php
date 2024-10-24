@@ -139,7 +139,9 @@ class MailContentsTable extends MailAppTable
 
         // redirect_url
         $validator
+            ->allowEmptyString('redirect_url')
             ->scalar('redirect_url')
+            ->regex('redirect_url', '/^http|^\/.*/', __d('baser_core', 'リダイレクトURLはURLの形式を入力してください。'))
             ->maxLength('redirect_url', 255, __d('baser_core', 'リダイレクトURLは255文字以内で入力してください。'));
 
         // description
@@ -176,32 +178,7 @@ class MailContentsTable extends MailAppTable
                     'message' => __d('baser_core', 'BCC用送信先メールアドレスのEメールの形式が不正です。')
                 ]]);
 
-        // ssl_on
-        $validator
-            ->add('ssl_on', [
-                'checkSslUrl' => [
-                    'rule' => 'checkSslUrl',
-                    'provider' => 'table',
-                    'message' => __d('baser_core', 'SSL通信を利用するには、システム設定で、事前にSSL通信用のWebサイトURLを指定してください。')
-                ]]);
-
         return $validator;
-    }
-
-    /**
-     * SSL用のURLが設定されているかチェックする
-     *
-     * @param array $check チェック対象文字列
-     * @return boolean
-     * @checked
-     * @noTodo
-     */
-    public function checkSslUrl($value)
-    {
-        if ($value && !Configure::read('BcEnv.sslUrl')) {
-            return false;
-        }
-        return true;
     }
 
     /**
@@ -209,6 +186,7 @@ class MailContentsTable extends MailAppTable
      *
      * @param array $check チェック対象文字列
      * @return boolean
+     * @unitTest
      */
     public static function alphaNumeric($check)
     {
@@ -243,6 +221,7 @@ class MailContentsTable extends MailAppTable
      * @return array|false
      * @checked
      * @noTodo
+     * @unitTest
      */
     public function createSearchIndex($mailContent)
     {
@@ -331,7 +310,7 @@ class MailContentsTable extends MailAppTable
             // メールフィールドコピー
             $mailFields = $this->MailFields->find()
                 ->where(['MailFields.mail_content_id' => $id])
-                ->order(['MailFields.sort'])
+                ->orderBy(['MailFields.sort'])
                 ->all();
             if($mailFields) {
                 foreach($mailFields as $field) {
