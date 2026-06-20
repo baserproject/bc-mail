@@ -243,17 +243,16 @@ class MailContentsTable extends MailAppTable
      * @param EventInterface $event
      * @param EntityInterface $entity
      * @param \ArrayObject $options
-     * @return boolean
+     * @return void
      */
     public function beforeSave(EventInterface $event, EntityInterface $entity, \ArrayObject $options)
     {
         if (!Plugin::isLoaded('BcSearchIndex')) {
-            return true;
+            return;
         }
         if (empty($entity->content) || !empty($entity->content->exclude_search)) {
             $this->setExcluded();
         }
-        return true;
     }
 
     /**
@@ -300,7 +299,7 @@ class MailContentsTable extends MailAppTable
         int $newParentId,
         string|null $newTitle,
         int $newAuthorId,
-        int $newSiteId = null
+        ?int $newSiteId = null
     ) {
         $data = $this->find()->where(['MailContents.id' => $id])->contain('Contents')->first();
         $oldData = clone $data;
