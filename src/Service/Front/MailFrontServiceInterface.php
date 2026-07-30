@@ -15,6 +15,7 @@ use BcMail\Model\Entity\MailContent;
 use BcMail\Model\Entity\MailMessage;
 use Cake\Controller\Controller;
 use Cake\Datasource\EntityInterface;
+use Cake\Datasource\ResultSetInterface;
 
 /**
  * MailFrontServiceInterface
@@ -96,25 +97,25 @@ interface MailFrontServiceInterface
      * @noTodo
      * @unitTest
      */
-    public function getUserMail(iterable $mailFields, EntityInterface $mailMessage): string;
+    public function getUserMail(ResultSetInterface $mailFields, EntityInterface $mailMessage): string;
 
     /**
      * 添付ファイルのパスを取得する
-     * @param iterable $mailFields
+     * @param ResultSetInterface $mailFields
      * @param EntityInterface $mailMessage
      * @return array
      * @checked
      * @noTodo
      * @unitTest
      */
-    public function getAttachments(iterable $mailFields, EntityInterface $mailMessage): array;
+    public function getAttachments(ResultSetInterface $mailFields, EntityInterface $mailMessage): array;
 
     /**
      * メール送信用のデータを生成する
      *
      * @param EntityInterface $mailConfig
      * @param EntityInterface $mailContent
-     * @param iterable $mailFields
+     * @param ResultSetInterface $mailFields
      * @param EntityInterface $mailMessage
      * @return array
      * @checked
@@ -124,7 +125,7 @@ interface MailFrontServiceInterface
     public function createMailData(
         EntityInterface $mailConfig,
         EntityInterface $mailContent,
-        iterable $mailFields,
+        ResultSetInterface $mailFields,
         EntityInterface $mailMessage,
         array $options);
 

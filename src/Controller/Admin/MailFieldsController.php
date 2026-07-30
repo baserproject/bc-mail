@@ -58,8 +58,8 @@ class MailFieldsController extends MailAdminAppController
      */
     public function beforeFilter(EventInterface $event)
     {
-        parent::beforeFilter($event);
-        if ($event->getResult()) return;
+        $response = parent::beforeFilter($event);
+        if($response) return $response;
         $this->_checkEnv();
 
         $mailContentId = $this->request->getParam('pass.0');

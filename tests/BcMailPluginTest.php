@@ -1,6 +1,6 @@
 <?php
 
-namespace BcMail\Test\TestCase;
+namespace BcMail\Test;
 
 use BaserCore\TestSuite\BcTestCase;
 use BcMail\BcMailPlugin;
