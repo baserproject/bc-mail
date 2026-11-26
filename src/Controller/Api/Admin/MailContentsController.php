@@ -70,8 +70,7 @@ class MailContentsController extends BcAdminApiController
             $this->setResponse($this->response->withStatus(404));
             $message = __d('baser_core', 'データが見つかりません。');
         } catch (\Throwable $e) {
-            $message = __d('baser_core', 'データベース処理中にエラーが発生しました。') . $e->getMessage();
-            $this->setResponse($this->response->withStatus(500));
+            $message = $this->handleThrowable($e);
         }
         $this->set([
             'mailContent' => $mailContent,
@@ -117,8 +116,7 @@ class MailContentsController extends BcAdminApiController
             $message = __d('baser_core', "入力エラーです。内容を修正してください。");
             $this->setResponse($this->response->withStatus(400));
         } catch (\Throwable $e) {
-            $message = __d('baser_core', 'データベース処理中にエラーが発生しました。') . $e->getMessage();
-            $this->setResponse($this->response->withStatus(500));
+            $message = $this->handleThrowable($e);
         }
         $this->set([
             'mailContent' => $entity,
@@ -218,6 +216,10 @@ class MailContentsController extends BcAdminApiController
         $this->request->allowMethod(['post', 'put', 'patch']);
         $entity = null;
         try {
+            $this->getIntegerData('entity_id');
+            $this->getIntegerData('parent_id');
+            $this->getIntegerData('site_id', false);
+            $this->assertScalarData('title');
             $entity = $service->copy($this->request->getData());
             if (!$entity) {
                 $this->setResponse($this->response->withStatus(400));
@@ -231,8 +233,7 @@ class MailContentsController extends BcAdminApiController
             $this->setResponse($this->response->withStatus(404));
             $message = __d('baser_core', 'データが見つかりません。');
         } catch (\Throwable $e) {
-            $message = __d('baser_core', 'データベース処理中にエラーが発生しました。') . $e->getMessage();
-            $this->setResponse($this->response->withStatus(500));
+            $message = $this->handleThrowable($e);
         }
         $this->set([
             'message' => $message,

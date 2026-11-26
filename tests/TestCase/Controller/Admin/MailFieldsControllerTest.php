@@ -25,6 +25,7 @@ use BcMail\Test\Factory\MailFieldsFactory;
 use BcMail\Test\Scenario\MailContentsScenario;
 use BcMail\Test\Scenario\MailFieldsScenario;
 use Cake\Event\Event;
+use Cake\Http\Exception\NotFoundException;
 use Cake\ORM\TableRegistry;
 use CakephpFixtureFactories\Scenario\ScenarioAwareTrait;
 
@@ -74,6 +75,19 @@ class MailFieldsControllerTest extends BcTestCase
     /**
      * beforeFilter
      */
+    public function testBeforeFilter_non_numeric_id()
+    {
+        //数字以外の ID を指定した場合。
+        $this->expectException(NotFoundException::class);
+        $request = $this->getRequest('/baser/admin/bc-mail/mail_fields/index/1abc');
+        $request = $this->loginAdmin($request);
+        $controller = new MailFieldsController($request);
+        $controller->beforeFilter(new Event('filter'));
+    }
+
+    /**
+     * beforeFilter
+     */
     public function testBeforeFilter()
     {
         ContentFactory::make([
@@ -99,7 +113,7 @@ class MailFieldsControllerTest extends BcTestCase
         $this->MailFieldsController = new MailFieldsController($request);
         $event = new Event('filter');
         $this->expectExceptionMessage('コンテンツデータが見つかりません。');
-        $this->expectException('BaserCore\Error\BcException');
+        $this->expectException('Cake\Http\Exception\NotFoundException');
         $this->MailFieldsController->beforeFilter($event);
     }
 

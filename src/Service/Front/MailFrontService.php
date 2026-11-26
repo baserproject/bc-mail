@@ -28,6 +28,7 @@ use BcMail\Service\MailMessagesServiceInterface;
 use Cake\Controller\Controller;
 use Cake\Datasource\EntityInterface;
 use Cake\Http\ServerRequest;
+use Cake\Mailer\Mailer;
 use Cake\Mailer\MailerAwareTrait;
 use Cake\ORM\Exception\PersistenceFailedException;
 use Cake\ORM\Query;
@@ -239,7 +240,7 @@ class MailFrontService implements MailFrontServiceInterface
             $userMail = $this->getUserMail($mailFields, $mailMessage);
             $attachments = $this->getAttachments($mailFields, $mailMessage);
             $data = $this->createMailData($mailConfig, $mailContent, $mailFields, $mailMessage, $sendEmailOptions);
-            $this->getMailer('BcMail.MailMessage')->send('sendFormToAdmin', [
+            $this->getMailMessageMailer($mailContent)->send('sendFormToAdmin', [
                 $mailContent,
                 $adminMail,
                 $userMail,
@@ -248,7 +249,7 @@ class MailFrontService implements MailFrontServiceInterface
                 $sendEmailOptions
             ]);
             if ($userMail) {
-                $this->getMailer('BcMail.MailMessage')->send('sendFormToUser', [
+                $this->getMailMessageMailer($mailContent)->send('sendFormToUser', [
                     $mailContent,
                     $adminMail,
                     $userMail,
@@ -269,6 +270,31 @@ class MailFrontService implements MailFrontServiceInterface
             $mailMessagesService = $this->getService(MailMessagesServiceInterface::class);
             $mailMessagesService->delete($mailMessage->id);
         }
+    }
+
+    /**
+     * メールフォームのサイトのテーマでメールを組み立てる Mailer を取得する
+     *
+     * BcMailer はリクエストのサイト（currentSite）のテーマを使うため、公開API
+     * （/baser/api/bc-mail/mail_messages/add/{id}.json）から送ると、メインサイトのテーマで
+     * メールのテンプレートを探してしまう。メールフォームのサイトのテーマを使うようにする。
+     *
+     * @param EntityInterface $mailContent
+     * @return Mailer
+     * @checked
+     * @noTodo
+     * @unitTest
+     */
+    protected function getMailMessageMailer(EntityInterface $mailContent): Mailer
+    {
+        $mailer = $this->getMailer('BcMail.MailMessage');
+        $site = $mailContent->content->site ?? null;
+        if ($site && !empty($site->theme)) {
+            $mailer->viewBuilder()
+                ->setTheme($site->theme)
+                ->setClassName('BaserCore.BcFrontEmail');
+        }
+        return $mailer;
     }
 
     /**
@@ -431,11 +457,17 @@ class MailFrontService implements MailFrontServiceInterface
     private function _checkDirectoryRraversal(int $mailContentId, array $postData)
     {
         $mailFields = $this->getMailFields($mailContentId);
+        // ファイル項目が無い場合（使う項目が 0 件のフォームを含む）は、検証するファイルが無いため通す
+        $hasFileField = false;
+        foreach($mailFields as $mailField) {
+            if ($mailField->type === 'file') {
+                $hasFileField = true;
+                break;
+            }
+        }
+        if (!$hasFileField) return true;
         $mailMessagesTable = TableRegistry::getTableLocator()->get('BcMail.MailMessages');
-        if (
-            !$mailFields
-            || empty($mailMessagesTable->getBehavior('BcUpload')->getSettings())
-        ) {
+        if (empty($mailMessagesTable->getBehavior('BcUpload')->getSettings())) {
             return false;
         }
         foreach($mailFields as $mailField) {

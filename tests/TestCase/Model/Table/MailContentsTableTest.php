@@ -15,6 +15,8 @@ use BaserCore\TestSuite\BcTestCase;
 use BaserCore\Utility\BcContainerTrait;
 use BcMail\Model\Table\MailContentsTable;
 use BcMail\Service\MailContentsServiceInterface;
+use BcMail\Test\Factory\MailContentFactory;
+use BcMail\Test\Factory\MailFieldsFactory;
 use BcMail\Test\Scenario\MailContentsScenario;
 use CakephpFixtureFactories\Scenario\ScenarioAwareTrait;
 
@@ -396,6 +398,23 @@ class MailContentsTableTest extends BcTestCase
     }
 
     /**
+     * メールフィールドが並び順（sort）どおりに取得される
+     */
+    public function testMailFieldsSort()
+    {
+        MailContentFactory::make(['id' => 1])->persist();
+        MailFieldsFactory::make(['id' => 1, 'mail_content_id' => 1, 'field_name' => 'field_1', 'sort' => 3])->persist();
+        MailFieldsFactory::make(['id' => 2, 'mail_content_id' => 1, 'field_name' => 'field_2', 'sort' => 1])->persist();
+        MailFieldsFactory::make(['id' => 3, 'mail_content_id' => 1, 'field_name' => 'field_3', 'sort' => 2])->persist();
+
+        $mailContent = $this->MailContent->get(1, contain: ['MailFields']);
+        $this->assertEquals(
+            ['field_2', 'field_3', 'field_1'],
+            array_map(fn($field) => $field->field_name, $mailContent->mail_fields)
+        );
+    }
+
+    /**
      * test validationDefault
      */
     public function testValidationDefault()
@@ -513,5 +532,20 @@ class MailContentsTableTest extends BcTestCase
         $this->assertArrayHasKey('regex', $errors['form_template']);
         $this->assertArrayHasKey('regex', $errors['mail_template']);
         $this->assertArrayHasKey('regex', $errors['redirect_url']);
+    }
+
+    /**
+     * test beforeSave
+     * 検索対象外のメールフォームの後に保存するものは、検索対象外にならない
+     */
+    public function testBeforeSave()
+    {
+        $entity = new \Cake\ORM\Entity(['content' => new \Cake\ORM\Entity(['exclude_search' => true])]);
+        $this->MailContent->beforeSave(new \Cake\Event\Event('beforeSave'), $entity, new \ArrayObject());
+        $this->assertTrue($this->MailContent->isExcluded());
+
+        $entity = new \Cake\ORM\Entity(['content' => new \Cake\ORM\Entity(['exclude_search' => false])]);
+        $this->MailContent->beforeSave(new \Cake\Event\Event('beforeSave'), $entity, new \ArrayObject());
+        $this->assertFalse($this->MailContent->isExcluded());
     }
 }

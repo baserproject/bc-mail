@@ -11,6 +11,7 @@
 
 namespace BcMail\Model\Table;
 
+use Cake\Datasource\Exception\RecordNotFoundException;
 use BaserCore\Model\Entity\Content;
 use BaserCore\Utility\BcContainerTrait;
 use BcMail\Service\MailMessagesServiceInterface;
@@ -77,7 +78,7 @@ class MailContentsTable extends MailAppTable
         $this->setPrimaryKey('id');
         $this->hasMany('MailFields', [
             'className' => 'BcMail.MailFields',
-            'order' => 'sort',
+            'sort' => ['MailFields.sort' => 'ASC'],
             'foreignKey' => 'mail_content_id',
             'dependent' => true
         ]);
@@ -255,6 +256,8 @@ class MailContentsTable extends MailAppTable
         if (!Plugin::isLoaded('BcSearchIndex')) {
             return;
         }
+        // 前回の保存で検索対象外にした状態が残らないよう、一旦解除する
+        $this->unsetExcluded();
         if (empty($entity->content) || !empty($entity->content->exclude_search)) {
             $this->setExcluded();
         }
@@ -307,6 +310,8 @@ class MailContentsTable extends MailAppTable
         ?int $newSiteId = null
     ) {
         $data = $this->find()->where(['MailContents.id' => $id])->contain('Contents')->first();
+        // 存在しない ID の場合、null を複製しようとして Error となるため、データが見つからない例外とする
+        if (!$data) throw new RecordNotFoundException(__d('baser_core', 'データが見つかりません。'));
         $oldData = clone $data;
 
         // EVENT MailContents.beforeCopy

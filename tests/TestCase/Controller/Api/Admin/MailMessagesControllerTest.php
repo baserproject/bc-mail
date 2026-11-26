@@ -234,14 +234,14 @@ class MailMessagesControllerTest extends BcTestCase
         // 追加したメールメッセージ内容を確認する
         $this->assertEquals('message after', $result->mailMessage->message);
 
-        // 無効なメールメッセージデータの場合、エラーになる
+        // 送信値の ID に数字以外を指定しても 500 にならず、URL の ID のデータを更新すること
         $data = ['id' => 'text'];
         $this->post("/baser/api/admin/bc-mail/mail_messages/edit/1.json?mail_content_id=1&token=$this->accessToken", $data);
         $result = json_decode((string)$this->_response->getBody());
         // レスポンスのコードを確認する
-        $this->assertResponseCode(500);
-        // レスポンスのメッセージ内容を確認する
-        $this->assertEquals('データベース処理中にエラーが発生しました。Cannot convert value `text` of type `string` to int', $result->message);
+        $this->assertResponseOk();
+        // URL の ID のデータが対象になっていることを確認する
+        $this->assertEquals(1, $result->mailMessage->id);
 
         //不要なテーブルを削除
         $MailMessagesService->dropTable(1);
@@ -342,15 +342,15 @@ class MailMessagesControllerTest extends BcTestCase
         $this->assertEquals('MailMessages', $dbLog->controller);
         $this->assertEquals('batch', $dbLog->action);
 
-        // 一括削除が失敗の場合のテスト
-        $data = ['batch_targets' => ['invalid id'], 'batch' => 'delete'];
-        // 受信メール一括削除のAPIを叩く
+        // 存在しない ID は飛ばし、エラーにしないこと
+        $data = ['batch_targets' => [99], 'batch' => 'delete'];
         $this->post("/baser/api/admin/bc-mail/mail_messages/batch/1.json?token=$this->accessToken", $data);
-        // レスポンスのコードを確認する
-        $this->assertResponseCode(500);
-        // レスポンスのメッセージ内容を確認する
-        $result = json_decode((string)$this->_response->getBody());
-        $this->assertStringContainsString('($id) must be of type int, string given', $result->message);
+        $this->assertResponseOk();
+
+        // 数字以外の ID を含む場合は 400
+        $data = ['batch_targets' => ['invalid id', 99], 'batch' => 'delete'];
+        $this->post("/baser/api/admin/bc-mail/mail_messages/batch/1.json?token=$this->accessToken", $data);
+        $this->assertResponseCode(400);
 
         //不要なテーブルを削除
         $MailMessagesService->dropTable(1);

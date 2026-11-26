@@ -77,7 +77,8 @@ class MailMessagesAdminServiceTest extends BcTestCase
         $this->assertEquals('description test', $result['mailContent']->description);
         $this->assertEquals(2, $result['mailMessage']->id);
         $this->assertCount(3, $result['mailFields']);
-        $this->assertEquals('sex', $result['mailFields'][2]->field_name);
+        // メールフィールドは並び順（sort）どおりに取得される
+        $this->assertEquals(['name_1', 'name_2', 'sex'], array_map(fn($field) => $field->field_name, $result['mailFields']));
         // abnormal case
         $this->expectException(RecordNotFoundException::class);
         $this->MailMessagesAdminService->getViewVarsForView(99, 99);
@@ -109,7 +110,8 @@ class MailMessagesAdminServiceTest extends BcTestCase
         $this->assertEquals('description test', $result['mailContent']->description);
         $this->assertCount(2, $result['mailMessages']);
         $this->assertCount(3, $result['mailFields']);
-        $this->assertEquals('sex', $result['mailFields'][2]->field_name);
+        // メールフィールドは並び順（sort）どおりに取得される
+        $this->assertEquals(['name_1', 'name_2', 'sex'], array_map(fn($field) => $field->field_name, $result['mailFields']));
         // abnormal case
         $this->expectException(RecordNotFoundException::class);
         $this->MailMessagesAdminService->getViewVarsForIndex(99, $mailMessages);
@@ -136,12 +138,21 @@ class MailMessagesAdminServiceTest extends BcTestCase
         // 正常系実行：Encodingを指定するケース
         $request = $this->getRequest()->withQueryParams([
             'Site' => SiteFactory::get(1),
-            'encoding' => 'abc',
+            'encoding' => 'SJIS-win',
             'Content' => ContentFactory::get(1)
         ]);
         $this->loginAdmin($request);
         $result = $this->MailMessagesAdminService->getViewVarsForDownloadCsv(1, $request);
-        $this->assertEquals('abc', $result['encoding']);
+        $this->assertEquals('SJIS-win', $result['encoding']);
+
+        // 異常系実行：対応していない Encoding を指定するケースは UTF-8 にする
+        $request = $this->getRequest()->withQueryParams([
+            'encoding' => 'UTF-8<script>',
+            'Content' => ContentFactory::get(1)
+        ]);
+        $this->loginAdmin($request);
+        $result = $this->MailMessagesAdminService->getViewVarsForDownloadCsv(1, $request);
+        $this->assertEquals('utf-8', $result['encoding']);
 
         // 正常系実行：Encodingを指定しないケース
         $request = $this->getRequest()->withQueryParams([

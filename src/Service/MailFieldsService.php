@@ -82,10 +82,15 @@ class MailFieldsService implements MailFieldsServiceInterface
             $conditions['use_field'] = true;
         }
 
-        return $this->MailFields->get($id,
+        $entity = $this->MailFields->get($id,
             contain: ['MailContents' => ['Contents']],
             conditions: $conditions
         );
+        if ($queryParams['status'] === 'publish') {
+            // 公開データでは、関連するメールコンテンツの通知先と BCC のメールアドレスを返さない
+            $entity->mail_content->setHidden(['sender_1', 'sender_2'], true);
+        }
+        return $entity;
     }
 
     /**
@@ -323,6 +328,9 @@ class MailFieldsService implements MailFieldsServiceInterface
      */
     public function batch(string $method, array $ids): bool
     {
+        if (!$ids) return true;
+        // 削除済みの ID や数字以外の値は飛ばす（例外にすると、対象の有無で応答が変わる）
+        $ids = $this->MailFields->filterExistingIds($ids);
         if (!$ids) return true;
         $db = $this->MailFields->getConnection();
         $db->begin();
